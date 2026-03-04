@@ -1,0 +1,133 @@
+-- =============================================
+-- TIENDYN RESTAURANTES - Base de datos MySQL
+-- =============================================
+
+CREATE DATABASE IF NOT EXISTS tiendyn_restaurants CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE tiendyn_restaurants;
+
+-- =============================================
+-- USUARIOS
+-- =============================================
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('owner', 'customer') NOT NULL,
+    phone VARCHAR(20),
+    profile_image VARCHAR(500),                    -- Firebase Storage
+    auth_token VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- =============================================
+-- RESTAURANTES
+-- =============================================
+CREATE TABLE restaurants (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_id INT NOT NULL,                         -- FK a users.id
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    address VARCHAR(255),
+    city VARCHAR(100),
+    phone VARCHAR(20),
+    logo_url VARCHAR(500),                         -- Firebase Storage
+    cover_image_url VARCHAR(500),                  -- Firebase Storage
+    category ENUM('pizza', 'burger', 'sushi', 'mexican', 'chinese', 'seafood', 'vegetarian', 'other') DEFAULT 'other',
+    is_open BOOLEAN DEFAULT TRUE,
+    rating DECIMAL(2,1) DEFAULT 0.0,
+    total_ratings INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- CATEGORIAS DEL MENU
+-- =============================================
+CREATE TABLE menu_categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    sort_order INT DEFAULT 0,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- PRODUCTOS DEL MENU
+-- =============================================
+CREATE TABLE menu_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    restaurant_id INT NOT NULL,
+    category_id INT,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    image_url VARCHAR(500),                        -- Firebase Storage
+    is_available BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES menu_categories(id) ON DELETE SET NULL
+);
+
+-- =============================================
+-- SEGUIDORES
+-- =============================================
+CREATE TABLE follows (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    restaurant_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_follow (user_id, restaurant_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id) ON DELETE CASCADE
+);
+
+-- =============================================
+-- PEDIDOS
+-- =============================================
+CREATE TABLE orders (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    restaurant_id INT NOT NULL,
+    status ENUM('pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled') DEFAULT 'pending',
+    total DECIMAL(10,2) NOT NULL,
+    delivery_address VARCHAR(255),
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
+);
+
+-- =============================================
+-- DETALLE DE PEDIDOS
+-- =============================================
+CREATE TABLE order_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    order_id INT NOT NULL,
+    menu_item_id INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (menu_item_id) REFERENCES menu_items(id)
+);
+
+-- =============================================
+-- CALIFICACIONES
+-- =============================================
+CREATE TABLE ratings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    restaurant_id INT NOT NULL,
+    order_id INT NOT NULL,
+    score TINYINT NOT NULL CHECK (score BETWEEN 1 AND 5),
+    comment TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY unique_rating (user_id, order_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+);

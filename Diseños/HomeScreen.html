@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestaurApp — Inicio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* PHONE FRAME */
+  .phone {
+    width: 390px;
+    height: 820px;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.06);
+    background: #FAFAFA;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* SCROLL AREA */
+  .scroll {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ── HEADER ── */
+  .header {
+    padding: 52px 24px 20px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-left h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 900;
+    color: #1A0A00;
+    line-height: 1.25;
+    max-width: 220px;
+  }
+  .header-left p {
+    font-size: 13px;
+    color: #9A7B65;
+    margin-top: 3px;
+  }
+  .notif-btn {
+    width: 42px; height: 42px;
+    background: #FFF3E8;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+    border: 1.5px solid #FFE0C0;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .notif-dot {
+    width: 8px; height: 8px;
+    background: #FF6B35;
+    border-radius: 50%;
+    position: absolute;
+    top: 6px; right: 6px;
+    border: 2px solid #fff;
+  }
+
+  /* ── SEARCH ── */
+  .search-wrap {
+    padding: 0 24px 16px;
+    background: #fff;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .search-box {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #F5F5F5;
+    border-radius: 50px;
+    padding: 12px 18px;
+    border: 1.5px solid transparent;
+    transition: border-color .2s;
+    cursor: text;
+  }
+  .search-box:focus-within {
+    border-color: #FF6B35;
+    background: #fff;
+  }
+  .search-box input {
+    border: none; background: transparent;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px; color: #1A0A00;
+    outline: none; width: 100%;
+    padding: 0;
+  }
+  .search-box input::placeholder { color: #BBB; }
+  .search-icon { font-size: 16px; flex-shrink: 0; }
+  .filter-btn {
+    width: 44px; height: 44px;
+    background: #FF6B35;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(255,107,53,0.35);
+    flex-shrink: 0;
+  }
+
+  /* ── BANNER ── */
+  .banner {
+    margin: 0 24px 20px;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #FF6B35 0%, #E8521A 100%);
+    padding: 22px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+  }
+  .banner::before {
+    content:'';
+    position:absolute;
+    width:150px; height:150px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.07);
+    right:-30px; top:-40px;
+  }
+  .banner-text { z-index:2; }
+  .banner-tag {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50px;
+    padding: 4px 12px;
+    font-size: 11px; font-weight: 700;
+    color: #fff; display: inline-block;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .banner-text h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px; font-weight: 900;
+    color: #fff; line-height: 1.3;
+    margin-bottom: 14px;
+    max-width: 160px;
+  }
+  .banner-btn {
+    background: #1A0A00;
+    color: #fff;
+    border: none;
+    border-radius: 50px;
+    padding: 9px 18px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .banner-btn:hover { background: #333; }
+  .banner-img {
+    font-size: 80px;
+    z-index: 2;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    animation: float 3s ease-in-out infinite;
+    line-height: 1;
+  }
+  @keyframes float {
+    0%,100%{ transform:translateY(0) rotate(-5deg); }
+    50%    { transform:translateY(-6px) rotate(5deg); }
+  }
+  .discount-badge {
+    position:absolute;
+    bottom:14px; right:18px;
+    background:#fff;
+    border-radius:50%;
+    width:48px; height:48px;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    z-index:3;
+  }
+  .discount-badge span:first-child {
+    font-size:8px; font-weight:700; color:#FF6B35; line-height:1;
+  }
+  .discount-badge span:last-child {
+    font-size:15px; font-weight:900; color:#FF6B35; line-height:1;
+  }
+
+  /* ── CATEGORÍAS ── */
+  .section-wrap { padding: 0 24px; }
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: #1A0A00;
+  }
+  .see-all {
+    font-size: 13px; font-weight: 600;
+    color: #FF6B35; cursor: pointer;
+    text-decoration: none;
+  }
+
+  .cats-scroll {
+    display: flex; gap: 12px;
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .cats-scroll::-webkit-scrollbar { display: none; }
+
+  .cat-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 6px;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .cat-icon {
+    width: 58px; height: 58px;
+    border-radius: 18px;
+    background: #F5F5F5;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    transition: all .2s;
+    border: 2px solid transparent;
+  }
+  .cat-item.active .cat-icon {
+    background: #FF6B35;
+    border-color: #FF6B35;
+    box-shadow: 0 4px 14px rgba(255,107,53,0.35);
+  }
+  .cat-item:hover .cat-icon { border-color: #FF6B35; }
+  .cat-name {
+    font-size: 11px; font-weight: 600;
+    color: #9A7B65;
+  }
+  .cat-item.active .cat-name { color: #FF6B35; }
+
+  /* ── RESTAURANTES RECOMENDADOS ── */
+  .restaurants-grid {
+    display: flex; gap: 14px;
+    overflow-x: auto; padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .restaurants-grid::-webkit-scrollbar { display: none; }
+
+  .rest-card {
+    width: 170px; flex-shrink: 0;
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    border: 1.5px solid #F5F5F5;
+  }
+  .rest-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  }
+  .rest-img {
+    width: 100%; height: 110px;
+    object-fit: cover;
+    font-size: 60px;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #FFF3E8, #FFE0C0);
+    position: relative;
+  }
+  .rest-img-emoji { font-size: 56px; }
+  .add-btn {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    width: 28px; height: 28px;
+    background: #FF6B35;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; font-weight: 700;
+    box-shadow: 0 3px 8px rgba(255,107,53,0.4);
+  }
+  .rest-info { padding: 10px 12px 12px; }
+  .rest-name {
+    font-size: 13px; font-weight: 700;
+    color: #1A0A00; margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rest-desc {
+    font-size: 11px; color: #9A7B65;
+    margin-bottom: 7px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .rest-meta {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .rest-rating {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 12px; font-weight: 700; color: #1A0A00;
+  }
+  .rest-price {
+    font-size: 13px; font-weight: 700; color: #FF6B35;
+  }
+
+  /* ── POPULARES (lista) ── */
+  .pop-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 12px;
+    display: flex; gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    cursor: pointer;
+    transition: all .2s;
+    border: 1.5px solid #F5F5F5;
+  }
+  .pop-card:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.09); transform:translateY(-1px); }
+  .pop-img {
+    width: 70px; height: 70px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FFF3E8, #FFE0C0);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px; flex-shrink: 0;
+  }
+  .pop-info { flex: 1; }
+  .pop-name {
+    font-size: 14px; font-weight: 700; color: #1A0A00;
+    margin-bottom: 3px;
+  }
+  .pop-rest {
+    font-size: 11px; color: #9A7B65; margin-bottom: 6px;
+  }
+  .pop-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pop-price { font-size: 15px; font-weight: 700; color: #FF6B35; }
+  .pop-rating {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 12px; font-weight: 600; color: #1A0A00;
+  }
+  .pop-add {
+    width: 32px; height: 32px;
+    background: #FF6B35;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(255,107,53,0.35);
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .pop-add:hover { background: #E8521A; transform: scale(1.08); }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    background: #fff;
+    border-top: 1px solid #F5F5F5;
+    padding: 12px 0 20px;
+    display: flex;
+    justify-content: space-around;
+    flex-shrink: 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .nav-item {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 4px;
+    cursor: pointer; padding: 0 16px;
+    transition: all .2s;
+  }
+  .nav-icon { font-size: 22px; }
+  .nav-label { font-size: 10px; font-weight: 600; color: #BBB; }
+  .nav-item.active .nav-label { color: #FF6B35; }
+  .nav-item.active .nav-icon { transform: scale(1.1); }
+  .nav-dot {
+    width: 5px; height: 5px;
+    background: #FF6B35; border-radius: 50%;
+    margin-top: -4px;
+  }
+
+  /* ── CARRUSEL CON FLECHAS A LOS LADOS ── */
+  .side-carousel {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .side-arrow {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid #F0DCC8;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700;
+    color: #FF6B35; cursor: pointer;
+    flex-shrink: 0;
+    transition: all .2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    line-height: 1;
+    padding: 0;
+  }
+  .side-arrow:hover {
+    background: #FF6B35; color: #fff;
+    border-color: #FF6B35;
+    box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+  }
+
+  /* ── CARRUSEL ── */
+  .carousel-wrap { position: relative; }
+  .carousel-track {
+    display: flex; gap: 14px;
+    overflow-x: auto; padding-bottom: 4px;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .carousel-track::-webkit-scrollbar { display: none; }
+
+  .carousel-list {
+    display: flex; flex-direction: column; gap: 12px;
+    overflow: hidden;
+  }
+
+  .carousel-arrows {
+    display: flex; gap: 8px;
+  }
+  .arrow-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1.5px solid #F0DCC8;
+    background: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; cursor: pointer;
+    color: #FF6B35; font-weight: 700;
+    transition: all .2s;
+    flex-shrink: 0;
+  }
+  .arrow-btn:hover {
+    background: #FF6B35; color: #fff;
+    border-color: #FF6B35;
+    box-shadow: 0 3px 10px rgba(255,107,53,0.3);
+  }
+  .arrow-btn:disabled {
+    opacity: 0.3; cursor: default;
+  }
+  /* SPACING */
+  .spacer { height: 20px; }
+  .section-gap { height: 24px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="scroll">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-left">
+        <h2>Ordena tu comida<br>favorita 🍽️</h2>
+        <p>📍 Barranquilla, Colombia</p>
+      </div>
+      <div class="notif-btn">
+        🔔
+        <div class="notif-dot"></div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Busca comida, restaurantes...">
+      </div>
+      <div class="filter-btn">⚙️</div>
+    </div>
+
+    <!-- BANNER -->
+    <div class="banner" style="margin-top:4px;">
+      <div class="banner-text">
+        <div class="banner-tag">🔥 Oferta especial</div>
+        <h3>¡Descuentos exclusivos hoy!</h3>
+        <button class="banner-btn">Pedir ahora</button>
+      </div>
+      <div class="banner-img">🍔</div>
+      <div class="discount-badge">
+        <span>Hasta</span>
+        <span>45%</span>
+      </div>
+    </div>
+
+    <!-- CATEGORÍAS -->
+    <div class="section-gap"></div>
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-title">Categorías</span>
+        <a class="see-all">Ver todas</a>
+      </div>
+      <div class="cats-scroll">
+        <div class="cat-item active" onclick="selectCat(this)">
+          <div class="cat-icon">🍔</div>
+          <span class="cat-name">Burgers</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🍕</div>
+          <span class="cat-name">Pizza</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🍗</div>
+          <span class="cat-name">Pollo</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🌮</div>
+          <span class="cat-name">Tacos</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🍣</div>
+          <span class="cat-name">Sushi</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🥗</div>
+          <span class="cat-name">Ensaladas</span>
+        </div>
+        <div class="cat-item" onclick="selectCat(this)">
+          <div class="cat-icon">🍜</div>
+          <span class="cat-name">Pasta</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOMENDADOS -->
+    <div class="section-gap"></div>
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-title">Recomendados</span>
+        <a class="see-all">Ver todos</a>
+      </div>
+      <div class="side-carousel">
+        <button class="side-arrow" onclick="slide('rec', -1)">‹</button>
+        <div class="carousel-track" id="track-rec">
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍔</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Burger House</div>
+              <div class="rest-desc">Hamburguesas artesanales</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.8</div><div class="rest-price">$15.000</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍕</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Pizza Roma</div>
+              <div class="rest-desc">Pizza italiana auténtica</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.6</div><div class="rest-price">$22.000</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍗</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Pollo Loco</div>
+              <div class="rest-desc">Pollo frito y asado</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.5</div><div class="rest-price">$18.000</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🌮</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">El Mexicano</div>
+              <div class="rest-desc">Tacos y burritos</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.7</div><div class="rest-price">$12.000</div></div>
+            </div>
+          </div>
+        </div>
+        <button class="side-arrow" onclick="slide('rec', 1)">›</button>
+      </div>
+    </div>
+
+    <!-- MIS RESTAURANTES -->
+    <div class="section-gap"></div>
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-title">Mis restaurantes ❤️</span>
+        <a class="see-all">Ver todos</a>
+      </div>
+      <div class="side-carousel">
+        <button class="side-arrow" onclick="slide('mis', -1)">‹</button>
+        <div class="carousel-track" id="track-mis">
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍔</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Burger House</div>
+              <div class="rest-desc">Hamburguesas artesanales</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.8</div><div class="rest-price" style="color:#4CAF50;font-size:11px;">Abierto</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍕</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Pizza Roma</div>
+              <div class="rest-desc">Pizza italiana auténtica</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.6</div><div class="rest-price" style="color:#4CAF50;font-size:11px;">Abierto</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍗</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Pollo Loco</div>
+              <div class="rest-desc">Pollo frito y asado</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.9</div><div class="rest-price" style="color:#E74C3C;font-size:11px;">Cerrado</div></div>
+            </div>
+          </div>
+          <div class="rest-card">
+            <div class="rest-img"><span class="rest-img-emoji">🍣</span><div class="add-btn">+</div></div>
+            <div class="rest-info">
+              <div class="rest-name">Sushi Zen</div>
+              <div class="rest-desc">Japonesa auténtica</div>
+              <div class="rest-meta"><div class="rest-rating">⭐ 4.7</div><div class="rest-price" style="color:#4CAF50;font-size:11px;">Abierto</div></div>
+            </div>
+          </div>
+        </div>
+        <button class="side-arrow" onclick="slide('mis', 1)">›</button>
+      </div>
+    </div>
+
+    <!-- RESTAURANTES POPULARES -->
+    <div class="section-gap"></div>
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-title">Populares 🔥</span>
+        <a class="see-all">Ver todos</a>
+      </div>
+      <div class="carousel-wrap">
+        <div id="track-pop">
+
+          <div class="pop-card">
+            <div class="pop-img">🥩</div>
+            <div class="pop-info">
+              <div class="pop-name">La Parrilla</div>
+              <div class="pop-rest">Carnes · 25 min · 1.0 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.9 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🌮</div>
+            <div class="pop-info">
+              <div class="pop-name">El Mexicano</div>
+              <div class="pop-rest">Mexicana · 20 min · 1.5 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.8 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🍣</div>
+            <div class="pop-info">
+              <div class="pop-name">Sushi Zen</div>
+              <div class="pop-rest">Japonesa · 35 min · 2.1 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.7 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🍔</div>
+            <div class="pop-info">
+              <div class="pop-name">Burger House</div>
+              <div class="pop-rest">Burgers · 20 min · 0.8 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.8 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🍕</div>
+            <div class="pop-info">
+              <div class="pop-name">Pizza Roma</div>
+              <div class="pop-rest">Italiana · 30 min · 1.2 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.6 &nbsp;·&nbsp; <span style="color:#E74C3C;font-size:11px;font-weight:700;">Cerrado</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RESTAURANTES CERCA -->
+    <div class="section-gap"></div>
+    <div class="section-wrap">
+      <div class="section-header">
+        <span class="section-title">Cerca de ti 📍</span>
+        <a class="see-all">Ver todos</a>
+      </div>
+      <div class="carousel-wrap">
+        <div id="track-cerca">
+
+          <div class="pop-card">
+            <div class="pop-img">🍔</div>
+            <div class="pop-info">
+              <div class="pop-name">Burger House</div>
+              <div class="pop-rest">Hamburguesas · 20 min · 0.8 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.8 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🍗</div>
+            <div class="pop-info">
+              <div class="pop-name">Pollo Loco</div>
+              <div class="pop-rest">Pollo frito · 15 min · 0.5 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.9 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🥗</div>
+            <div class="pop-info">
+              <div class="pop-name">Green Bowl</div>
+              <div class="pop-rest">Saludable · 18 min · 0.6 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.5 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🍕</div>
+            <div class="pop-info">
+              <div class="pop-name">Pizza Roma</div>
+              <div class="pop-rest">Italiana · 30 min · 1.2 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.6 &nbsp;·&nbsp; <span style="color:#E74C3C;font-size:11px;font-weight:700;">Cerrado</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+          <div class="pop-card">
+            <div class="pop-img">🌮</div>
+            <div class="pop-info">
+              <div class="pop-name">El Mexicano</div>
+              <div class="pop-rest">Mexicana · 25 min · 1.5 km</div>
+              <div class="pop-bottom">
+                <div class="pop-rating">⭐ 4.7 &nbsp;·&nbsp; <span style="color:#4CAF50;font-size:11px;font-weight:700;">Abierto</span></div>
+              </div>
+            </div>
+            <div class="pop-add">›</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label">Inicio</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">Pedidos</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">❤️</span>
+      <span class="nav-label">Favoritos</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">🔔</span>
+      <span class="nav-label">Alertas</span>
+    </div>
+    <div class="nav-item" onclick="setNav(this)">
+      <span class="nav-icon">👤</span>
+      <span class="nav-label">Perfil</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CATEGORÍAS
+  function selectCat(el) {
+    document.querySelectorAll('.cat-item').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // ── NAV
+  function setNav(el) {
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.remove('active');
+      const dot = n.querySelector('.nav-dot');
+      if (dot) dot.remove();
+    });
+    el.classList.add('active');
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot';
+    el.appendChild(dot);
+  }
+
+  // ── CARRUSEL HORIZONTAL (cards tipo rest-card)
+  function slide(id, dir) {
+    const track = document.getElementById('track-' + id);
+    const cardW = 170 + 14; // width + gap
+    track.scrollBy({ left: dir * cardW * 2, behavior: 'smooth' });
+  }
+
+  // ── CARRUSEL VERTICAL (pop-cards: muestra 2 a la vez)
+  const listPage = { pop: 0, cerca: 0 };
+
+  function slideList(id, dir) {
+    const track   = document.getElementById('track-' + id);
+    const cards   = Array.from(track.querySelectorAll('.pop-card'));
+    const perPage = 2;
+    const total   = cards.length;
+    const maxPage = Math.ceil(total / perPage) - 1;
+
+    listPage[id] = Math.max(0, Math.min(listPage[id] + dir, maxPage));
+
+    cards.forEach((c, i) => {
+      const page = Math.floor(i / perPage);
+      c.style.display = page === listPage[id] ? 'flex' : 'none';
+    });
+  }
+
+  // Inicializar: mostrar solo primeras 2 cards en pop y cerca
+  function initLists() {
+    ['pop', 'cerca'].forEach(id => {
+      listPage[id] = 0;
+      const track = document.getElementById('track-' + id);
+      const cards = Array.from(track.querySelectorAll('.pop-card'));
+      cards.forEach((c, i) => {
+        c.style.display = i < 2 ? 'flex' : 'none';
+      });
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', initLists);
+</script>
+</body>
+</html>

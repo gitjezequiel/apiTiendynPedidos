@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestaurApp — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* PHONE FRAME */
+  .phone {
+    width: 390px;
+    min-height: 780px;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.18),
+      0 0 0 1px rgba(0,0,0,0.06);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── ZONA SUPERIOR NARANJA ── */
+  .top-zone {
+    background: linear-gradient(160deg, #FFB347 0%, #FF6B35 50%, #E8521A 100%);
+    padding: 52px 30px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Círculos decorativos fondo */
+  .top-zone::before {
+    content:'';
+    position:absolute;
+    width:220px; height:220px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.08);
+    top:-60px; right:-60px;
+  }
+  .top-zone::after {
+    content:'';
+    position:absolute;
+    width:140px; height:140px;
+    border-radius:50%;
+    background: rgba(255,255,255,0.06);
+    bottom:-40px; left:20px;
+  }
+
+  /* Emoji decorativo grande */
+  .hero-emoji {
+    position:absolute;
+    right:28px; top:42px;
+    font-size:64px;
+    opacity:0.25;
+    animation: sway 4s ease-in-out infinite;
+    z-index:1;
+  }
+  @keyframes sway {
+    0%,100%{ transform: rotate(-8deg) scale(1); }
+    50%    { transform: rotate(8deg) scale(1.05); }
+  }
+
+  .top-nav {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:28px; position:relative; z-index:2;
+  }
+  .back-btn {
+    width:36px; height:36px;
+    background:rgba(255,255,255,0.22);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; font-size:16px; color:#fff;
+    border: 1px solid rgba(255,255,255,0.3);
+    transition: background .2s;
+  }
+  .back-btn:hover { background:rgba(255,255,255,0.32); }
+  .top-nav a {
+    color:#fff; font-size:14px; font-weight:600;
+    text-decoration:none; opacity:.9;
+    cursor:pointer;
+  }
+  .top-nav a:hover { opacity:1; }
+
+  .top-title {
+    position:relative; z-index:2;
+  }
+  .top-title h1 {
+    font-family:'Playfair Display',serif;
+    font-size:38px; font-weight:900;
+    color:#fff; line-height:1.1;
+    margin-bottom:10px;
+    text-shadow:0 2px 12px rgba(0,0,0,0.12);
+  }
+  .top-title p {
+    color:rgba(255,255,255,0.85);
+    font-size:14px; line-height:1.6;
+    max-width:240px;
+  }
+
+  /* Chips de comida */
+  .food-chips {
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin-top:16px; position:relative; z-index:2;
+  }
+  .chip {
+    background:rgba(255,255,255,0.15);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.28);
+    border-radius:50px;
+    padding:5px 12px;
+    font-size:12px; font-weight:600; color:#fff;
+    display:flex; align-items:center; gap:5px;
+  }
+
+  /* ── TARJETA BLANCA ── */
+  .card {
+    background:#fff;
+    border-radius:32px 32px 0 0;
+    margin-top:-32px;
+    flex:1;
+    padding:36px 28px 32px;
+    position:relative; z-index:5;
+    box-shadow:0 -4px 30px rgba(0,0,0,0.08);
+  }
+
+  /* TABS dentro de la card */
+  .tabs {
+    display:flex;
+    background:#F5F5F5;
+    border-radius:50px;
+    padding:4px;
+    margin-bottom:28px;
+  }
+  .tab {
+    flex:1; padding:10px;
+    border:none; background:transparent;
+    border-radius:50px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:13px; font-weight:600;
+    color:#999; cursor:pointer;
+    transition:all .25s;
+  }
+  .tab.active {
+    background:#1A1A1A;
+    color:#fff;
+    box-shadow:0 3px 12px rgba(0,0,0,0.2);
+  }
+
+  /* FORM PANEL */
+  .form-panel { display:none; }
+  .form-panel.active { display:block; animation:fadeUp .3s ease; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ROLE SELECTOR */
+  .role-row {
+    display:grid; grid-template-columns:1fr 1fr; gap:10px;
+    margin-bottom:20px;
+  }
+  .role-btn {
+    padding:14px 10px;
+    border:2px solid #EFEFEF;
+    border-radius:18px;
+    background:#FAFAFA;
+    cursor:pointer; text-align:center;
+    transition:all .2s;
+  }
+  .role-btn:hover { border-color:#E8521A; background:#FFF8EE; }
+  .role-btn.active {
+    border-color:#FF6B35;
+    background:#FFF0EE;
+    box-shadow:0 0 0 3px rgba(255,107,53,0.1);
+  }
+  .role-btn .ri { font-size:26px; display:block; margin-bottom:5px; }
+  .role-btn .rt { font-size:13px; font-weight:700; color:#1A1A1A; }
+  .role-btn .rs { font-size:11px; color:#aaa; margin-top:2px; }
+
+  /* INPUT */
+  .field { margin-bottom:14px; }
+  input {
+    width:100%;
+    padding:16px 18px;
+    background:#F5F5F5;
+    border:1.5px solid transparent;
+    border-radius:50px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:14px; color:#1A1A1A;
+    transition:all .2s;
+  }
+  input::placeholder { color:#BBBBBB; }
+  input:focus {
+    outline:none;
+    background:#fff;
+    border-color:#FF6B35;
+    box-shadow:0 0 0 3px rgba(255,107,53,0.10);
+  }
+
+  /* FORGOT */
+  .forgot {
+    text-align:right; margin-top:-6px; margin-bottom:22px;
+  }
+  .forgot a {
+    font-size:12px; font-weight:600;
+    color:#FF6B35; text-decoration:none;
+  }
+
+  /* BOTÓN PRINCIPAL */
+  .btn-main {
+    width:100%; padding:17px;
+    background:#1A1A1A; color:#fff;
+    border:none; border-radius:50px;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:15px; font-weight:700;
+    cursor:pointer; letter-spacing:.3px;
+    transition:all .2s;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+    margin-bottom:24px;
+  }
+  .btn-main:hover {
+    background:#000;
+    transform:translateY(-2px);
+    box-shadow:0 10px 28px rgba(0,0,0,0.28);
+  }
+  .btn-main:active { transform:translateY(0); }
+
+  /* SOCIAL */
+    display:flex; align-items:center;
+    padding:15px 18px;
+  .social-item:hover { border-color:#ddd; background:#FAFAFA; }
+  .social-item:last-child { margin-bottom:0; }
+  .social-logo { width:22px; height:22px; margin-right:14px; }
+  .social-item span {
+    font-size:14px; font-weight:600; color:#1A1A1A; flex:1;
+  }
+  .social-arrow { color:#aaa; font-size:16px; }
+
+  /* SOCIAL ICON BUTTONS */
+  .divider-text {
+    text-align:center; color:#aaa;
+    font-size:13px; font-weight:500;
+    margin: 0 0 16px;
+  }
+  .social-row {
+    display:flex; justify-content:center; gap:16px;
+  }
+  .social-icon-btn {
+    width:58px; height:58px;
+    border:1.5px solid #EFEFEF;
+    border-radius:16px;
+    background:#fff;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+    transition:all .2s;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  }
+  .social-icon-btn:hover {
+    border-color:#ddd;
+    background:#FAFAFA;
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px rgba(0,0,0,0.08);
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ZONA NARANJA SUPERIOR -->
+  <div class="top-zone">
+    <div class="hero-emoji">🍔</div>
+
+    <div class="top-nav">
+      <div class="back-btn">←</div>
+      <a onclick="sw('register', document.querySelectorAll('.tab')[1])">Registrarse</a>
+    </div>
+
+    <div class="top-title">
+      <h1>Iniciar sesión</h1>
+      <p>Descubre restaurantes únicos y ordena tu comida favorita</p>
+    </div>
+
+
+  </div>
+
+  <!-- TARJETA BLANCA -->
+  <div class="card">
+
+    <div class="tabs">
+      <button class="tab active" onclick="sw('login', this)">Iniciar sesión</button>
+      <button class="tab"        onclick="sw('register', this)">Registrarse</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-panel active" id="panel-login">
+      <div class="field">
+        <input type="text" placeholder="Usuario">
+      </div>
+      <div class="field">
+        <input type="password" placeholder="Contraseña">
+      </div>
+      <div class="forgot"><a href="#">¿Olvidaste tu contraseña?</a></div>
+
+      <button class="btn-main">Iniciar sesión</button>
+
+      <div class="divider-text">O continúa con</div>
+      <div class="social-row">
+        <div class="social-icon-btn">
+          <svg width="24" height="24" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.2 0 24 0 14.7 0 6.7 5.4 2.6 13.3l7.9 6.1C12.5 13.2 17.8 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/>
+            <path fill="#FBBC05" d="M10.5 28.6A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/>
+            <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.7 42.6 14.7 48 24 48z"/>
+          </svg>
+        </div>
+        <div class="social-icon-btn">
+          <svg width="24" height="24" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="24" fill="#1877F2"/>
+            <path fill="#fff" d="M33 24h-6v18h-6V24h-4v-6h4v-3.5C21 10.6 23.2 8 28 8h5v6h-3c-1.7 0-2 .7-2 2V18h5l-1 6z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- REGISTRO -->
+    <div class="form-panel" id="panel-register">
+      <div class="role-row">
+        <div class="role-btn active" onclick="pr(this)">
+          <span class="ri">🧑‍🍳</span>
+          <div class="rt">Cliente</div>
+          <div class="rs">Quiero ordenar</div>
+        </div>
+        <div class="role-btn" onclick="pr(this)">
+          <span class="ri">🏪</span>
+          <div class="rt">Restaurante</div>
+          <div class="rs">Quiero vender</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <input type="text" placeholder="Nombre completo">
+      </div>
+      <div class="field">
+        <input type="email" placeholder="Correo electrónico">
+      </div>
+      <div class="field">
+        <input type="password" placeholder="Contraseña">
+      </div>
+
+      <button class="btn-main">Crear cuenta</button>
+
+      <div class="divider-text">O continúa con</div>
+      <div class="social-row">
+        <div class="social-icon-btn">
+          <svg width="24" height="24" viewBox="0 0 48 48">
+            <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.2l6.8-6.8C35.8 2.4 30.2 0 24 0 14.7 0 6.7 5.4 2.6 13.3l7.9 6.1C12.5 13.2 17.8 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17z"/>
+            <path fill="#FBBC05" d="M10.5 28.6A14.6 14.6 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.9-6.1z"/>
+            <path fill="#34A853" d="M24 48c6.2 0 11.4-2 15.2-5.5l-7.5-5.8c-2 1.4-4.6 2.2-7.7 2.2-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.7 42.6 14.7 48 24 48z"/>
+          </svg>
+        </div>
+        <div class="social-icon-btn">
+          <svg width="24" height="24" viewBox="0 0 48 48">
+            <circle cx="24" cy="24" r="24" fill="#1877F2"/>
+            <path fill="#fff" d="M33 24h-6v18h-6V24h-4v-6h4v-3.5C21 10.6 23.2 8 28 8h5v6h-3c-1.7 0-2 .7-2 2V18h5l-1 6z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function sw(tab, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById('panel-' + tab).classList.add('active');
+
+    // Cambiar emoji hero según tab
+    const emojis = { login: '🍔', register: '🍽️' };
+    document.querySelector('.hero-emoji').textContent = emojis[tab] || '🍔';
+  }
+  function pr(el) {
+    document.querySelectorAll('.role-btn').forEach(r => r.classList.remove('active'));
+    el.classList.add('active');
+  }
+</script>
+</body>
+</html>
