@@ -11,7 +11,7 @@ Este proyecto es un sistema de gestión para restaurantes que funciona bajo un m
 ## 🗄️ Esquema de Base de Datos (Tablas Creadas)
 1. `users`: Dueños y clientes.
 2. `restaurants`: Información del establecimiento.
-3. `restaurant_categories`: **(NUEVO)** Categorías generales (Asados, Postres, etc.).
+3. `restaurant_categories`: **(NUEVO)** Categorías generales (Asados, Postres, etc.) con campo `icon_svg`.
 4. `menu_categories`: Agrupación de platillos por restaurante.
 5. `menu_items`: Platillos, precios e imágenes.
 6. `follows`: Seguimiento de clientes a restaurantes.
@@ -28,7 +28,7 @@ Este proyecto es un sistema de gestión para restaurantes que funciona bajo un m
 - [x] Controladores para Menús y Categorías.
 - [x] **Estandarización de API:** Respuestas uniformes con `status`, `message` y `errors` (string).
 - [x] **Localización:** Mensajes de validación y error en Español (`lang/es`).
-- [x] **Categorías Generales:** Implementado sistema de categorías para filtrar restaurantes.
+- [x] **Categorías Generales:** Implementado sistema de categorías con soporte para iconos SVG.
 - [ ] Lógica de Pedidos y Carrito (Pendiente).
 
 ## 📌 Notas de Implementación

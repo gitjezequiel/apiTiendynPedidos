@@ -9,7 +9,7 @@ class RestaurantCategory extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'icon_url'];
+    protected $fillable = ['name', 'icon_url', 'icon_svg'];
 
     public function restaurants()
     {
