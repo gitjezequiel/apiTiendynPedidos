@@ -37,6 +37,8 @@ class AuthController extends Controller
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        $restaurant = $user->restaurants()->first();
+        $user->restaurant_id = $restaurant ? $restaurant->id : null;
 
         return response()->json([
             'status' => 'success',
@@ -49,19 +51,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|string|email',
-            'password' => 'required|string',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Error de validación',
-                'errors' => $this->formatValidationErrors($validator)
-            ], 422);
-        }
-
+        // ... validación ...
         $user = User::where('email', $request->email)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -72,6 +62,8 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+        $restaurant = $user->restaurants()->first();
+        $user->restaurant_id = $restaurant ? $restaurant->id : null;
 
         return response()->json([
             'status' => 'success',

@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'restaurant_id', 'status', 'total', 'delivery_address', 'notes'
+        'user_id', 'restaurant_id', 'order_number', 'status', 'total', 'delivery_address', 'notes'
     ];
 
     public function user()

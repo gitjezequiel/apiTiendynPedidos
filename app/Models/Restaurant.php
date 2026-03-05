@@ -10,8 +10,7 @@ class Restaurant extends Model
     use HasFactory;
 
     protected $fillable = [
-        'owner_id', 'category_id', 'name', 'description', 'address', 'city', 'phone', 
-        'logo_url', 'cover_image_url', 'is_open', 'rating', 'total_ratings'
+        'owner_id', 'category_id', 'name', 'description', 'address', 'city', 'phone', 'logo_url', 'is_open'
     ];
 
     public function owner()
@@ -47,5 +46,17 @@ class Restaurant extends Model
     public function ratings()
     {
         return $this->hasMany(Rating::class);
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(RestaurantSchedule::class);
+    }
+
+    public function paymentMethods()
+    {
+        return $this->belongsToMany(PaymentMethod::class, 'restaurant_payment_methods')
+                    ->withPivot('is_active')
+                    ->withTimestamps();
     }
 }

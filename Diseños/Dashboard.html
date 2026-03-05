@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestaurApp — Panel Restaurante</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange:  #FF6B35;
+    --orange2: #FF8C55;
+    --dark:    #E8521A;
+    --cream:   #FFF8F2;
+    --warm:    #FFF3E8;
+    --border:  #FFE5D0;
+    --white:   #FFFFFF;
+    --text:    #1A0A00;
+    --muted:   #9A7B65;
+    --green:   #22C55E;
+    --red:     #EF4444;
+    --blue:    #3B82F6;
+    --yellow:  #F59E0B;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: #E8E8E8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  /* PHONE */
+  .phone {
+    width: 390px;
+    height: 820px;
+    border-radius: 48px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.06);
+    background: var(--cream);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* SCREENS */
+  .screen { display: none; flex-direction: column; height: 100%; }
+  .screen.active { display: flex; }
+
+  /* SCROLL */
+  .scroll {
+    flex: 1; overflow-y: auto; scrollbar-width: none;
+  }
+  .scroll::-webkit-scrollbar { display: none; }
+
+  /* ══ HEADER NARANJA ══ */
+  .orange-header {
+    background: linear-gradient(135deg, #FF8C55 0%, #FF6B35 50%, #E8521A 100%);
+    padding: 48px 24px 24px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .orange-header::before {
+    content:'';
+    position:absolute;
+    width:200px; height:200px; border-radius:50%;
+    background:rgba(255,255,255,0.07);
+    top:-60px; right:-60px;
+  }
+  .oh-top {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:18px; position:relative; z-index:2;
+  }
+  .oh-restaurant {
+    display:flex; align-items:center; gap:10px;
+  }
+  .oh-avatar {
+    width:40px; height:40px; border-radius:14px;
+    background:rgba(255,255,255,0.2);
+    border:2px solid rgba(255,255,255,0.3);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px;
+  }
+  .oh-name { font-size:15px; font-weight:700; color:#fff; }
+  .oh-sub  { font-size:11px; color:rgba(255,255,255,0.75); margin-top:1px; }
+
+  /* TOGGLE ABIERTO/CERRADO */
+  .toggle-wrap {
+    display:flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.25);
+    border-radius:50px;
+    padding:6px 12px;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .toggle-wrap.closed { background:rgba(0,0,0,0.2); }
+  .toggle-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:#fff; flex-shrink:0;
+  }
+  .toggle-wrap.closed .toggle-dot { background:rgba(255,255,255,0.4); }
+  .toggle-label { font-size:12px; font-weight:700; color:#fff; }
+
+  /* STATS MINI */
+  .oh-stats {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
+    position:relative; z-index:2;
+  }
+  .oh-stat {
+    background:rgba(255,255,255,0.15);
+    border:1px solid rgba(255,255,255,0.2);
+    border-radius:14px; padding:12px;
+    backdrop-filter:blur(8px);
+  }
+  .oh-stat-num {
+    font-family:'Playfair Display',serif;
+    font-size:20px; font-weight:700; color:#fff;
+  }
+  .oh-stat-label { font-size:10px; color:rgba(255,255,255,0.75); margin-top:2px; }
+
+  /* ALERTA PEDIDO NUEVO */
+  .new-order-alert {
+    margin:16px 20px 0;
+    background:linear-gradient(135deg, var(--orange), var(--dark));
+    border-radius:18px; padding:16px;
+    display:flex; align-items:center; gap:14px;
+    box-shadow:0 6px 20px rgba(255,107,53,0.35);
+    cursor:pointer;
+    animation: pulse 2s ease-in-out infinite;
+    flex-shrink:0;
+  }
+  @keyframes pulse {
+    0%,100%{ box-shadow:0 6px 20px rgba(255,107,53,0.35); }
+    50%     { box-shadow:0 6px 30px rgba(255,107,53,0.6); }
+  }
+  .alert-icon {
+    width:46px; height:46px;
+    background:rgba(255,255,255,0.2);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+  }
+  .alert-info { flex:1; }
+  .alert-title { font-size:14px; font-weight:700; color:#fff; }
+  .alert-sub   { font-size:12px; color:rgba(255,255,255,0.8); margin-top:2px; }
+  .alert-badge {
+    background:#fff; color:var(--orange);
+    font-size:13px; font-weight:800;
+    width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+
+  /* SECCIÓN */
+  .section { padding:20px 20px 0; }
+  .section-header {
+    display:flex; justify-content:space-between; align-items:center;
+    margin-bottom:14px;
+  }
+  .section-title {
+    font-family:'Playfair Display',serif;
+    font-size:17px; font-weight:700; color:var(--text);
+  }
+  .section-link {
+    font-size:12px; font-weight:600; color:var(--orange); cursor:pointer;
+  }
+
+  /* PEDIDOS CARDS */
+  .order-card {
+    background:var(--white);
+    border-radius:18px; padding:16px;
+    margin-bottom:12px;
+    box-shadow:0 2px 12px rgba(255,107,53,0.08);
+    border:1.5px solid var(--border);
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .order-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(255,107,53,0.14); }
+  .order-card-top {
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom:10px;
+  }
+  .order-num { font-size:13px; font-weight:700; color:var(--text); }
+  .order-time { font-size:11px; color:var(--muted); margin-top:2px; }
+  .order-total { font-size:15px; font-weight:800; color:var(--orange); }
+
+  .order-items-preview {
+    display:flex; gap:6px; margin-bottom:12px; flex-wrap:wrap;
+  }
+  .order-item-chip {
+    background:var(--warm);
+    border:1px solid var(--border);
+    border-radius:50px;
+    padding:4px 10px;
+    font-size:11px; font-weight:600; color:var(--text);
+  }
+
+  .order-card-bottom {
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .status-badge {
+    padding:5px 12px; border-radius:50px;
+    font-size:11px; font-weight:700;
+  }
+  .status-badge.new       { background:rgba(255,107,53,0.12); color:var(--orange); }
+  .status-badge.confirmed { background:rgba(59,130,246,0.12); color:var(--blue); }
+  .status-badge.preparing { background:rgba(245,158,11,0.12); color:var(--yellow); }
+  .status-badge.ready     { background:rgba(34,197,94,0.12);  color:var(--green); }
+  .status-badge.delivered { background:rgba(34,197,94,0.08);  color:var(--green); }
+
+  .order-actions { display:flex; gap:8px; }
+  .act-btn {
+    padding:7px 14px; border-radius:10px; border:none;
+    font-family:'Plus Jakarta Sans',sans-serif;
+    font-size:12px; font-weight:700; cursor:pointer;
+    transition:all .2s;
+  }
+  .act-btn.primary {
+    background:var(--orange); color:#fff;
+    box-shadow:0 3px 10px rgba(255,107,53,0.3);
+  }
+  .act-btn.primary:hover { background:var(--dark); }
+  .act-btn.secondary {
+    background:var(--warm); color:var(--muted);
+    border:1px solid var(--border);
+  }
+
+  /* MENÚ ITEMS */
+  .menu-item-card {
+    background:var(--white);
+    border-radius:16px; padding:14px;
+    margin-bottom:10px;
+    border:1.5px solid var(--border);
+    display:flex; align-items:center; gap:12px;
+    box-shadow:0 2px 8px rgba(255,107,53,0.06);
+    cursor:pointer; transition:all .2s;
+  }
+  .menu-item-card:hover { border-color:var(--orange); }
+  .menu-item-emoji {
+    width:50px; height:50px; border-radius:14px;
+    background:var(--warm);
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; flex-shrink:0;
+  }
+  .menu-item-info { flex:1; }
+  .menu-item-name { font-size:14px; font-weight:700; color:var(--text); }
+  .menu-item-cat  { font-size:11px; color:var(--muted); margin-top:2px; }
+  .menu-item-price { font-size:14px; font-weight:800; color:var(--orange); }
+  .menu-item-right { display:flex; flex-direction:column; align-items:flex-end; gap:8px; }
+
+  /* TOGGLE SWITCH */
+  .switch {
+    width:38px; height:20px;
+    background:var(--border); border-radius:50px;
+    position:relative; cursor:pointer; transition:background .2s;
+  }
+  .switch.on { background:var(--orange); }
+  .switch::after {
+    content:'';
+    position:absolute;
+    width:16px; height:16px; border-radius:50%; background:#fff;
+    top:2px; left:2px; transition:left .2s;
+    box-shadow:0 1px 4px rgba(0,0,0,0.2);
+  }
+  .switch.on::after { left:20px; }
+
+  /* RESEÑAS */
+  .review-card {
+    background:var(--white);
+    border-radius:16px; padding:16px;
+    margin-bottom:10px;
+    border:1.5px solid var(--border);
+    box-shadow:0 2px 8px rgba(255,107,53,0.06);
+  }
+  .review-top {
+    display:flex; align-items:center; gap:10px; margin-bottom:8px;
+  }
+  .review-avatar {
+    width:36px; height:36px; border-radius:50%;
+    background:linear-gradient(135deg,var(--orange),var(--dark));
+    display:flex; align-items:center; justify-content:center;
+    font-size:15px; font-weight:700; color:#fff; flex-shrink:0;
+  }
+  .review-name { font-size:13px; font-weight:700; color:var(--text); }
+  .review-date { font-size:11px; color:var(--muted); margin-top:1px; }
+  .review-stars { margin-left:auto; font-size:13px; }
+  .review-text { font-size:13px; color:var(--muted); line-height:1.6; }
+
+  /* RATING BIG */
+  .rating-summary {
+    background:linear-gradient(135deg,var(--orange),var(--dark));
+    border-radius:18px; padding:20px;
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:16px;
+    box-shadow:0 6px 20px rgba(255,107,53,0.3);
+  }
+  .rating-num {
+    font-family:'Playfair Display',serif;
+    font-size:48px; font-weight:900; color:#fff; line-height:1;
+  }
+  .rating-stars { font-size:18px; margin-bottom:4px; }
+  .rating-count { font-size:12px; color:rgba(255,255,255,0.8); }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    background:var(--white);
+    border-top:1px solid var(--border);
+    padding:12px 0 20px;
+    display:flex; justify-content:space-around;
+    flex-shrink:0;
+    box-shadow:0 -4px 20px rgba(255,107,53,0.08);
+  }
+  .nav-item {
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer; padding:0 12px; transition:all .2s;
+  }
+  .nav-icon { font-size:22px; }
+  .nav-label { font-size:10px; font-weight:600; color:#CCC; }
+  .nav-item.active .nav-label { color:var(--orange); }
+  .nav-dot {
+    width:5px; height:5px; background:var(--orange);
+    border-radius:50%; margin-top:-2px;
+  }
+  .nav-notif {
+    position:relative; display:inline-block;
+  }
+  .nav-notif-badge {
+    position:absolute; top:-4px; right:-6px;
+    background:var(--orange); color:#fff;
+    font-size:8px; font-weight:800;
+    width:14px; height:14px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:2px solid var(--white);
+  }
+
+  /* ADD BUTTON */
+  .fab {
+    position:fixed;
+    bottom:90px; right:calc(50% - 195px + 20px);
+    width:50px; height:50px;
+    background:linear-gradient(135deg,var(--orange),var(--dark));
+    border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; color:#fff; cursor:pointer;
+    box-shadow:0 6px 20px rgba(255,107,53,0.4);
+    transition:all .2s;
+    z-index:100;
+  }
+  .fab:hover { transform:scale(1.08); }
+
+  .spacer { height: 20px; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ══════════ SCREEN: DASHBOARD ══════════ -->
+  <div class="screen active" id="screen-dashboard">
+    <div class="scroll">
+
+      <!-- HEADER -->
+      <div class="orange-header">
+        <div class="oh-top">
+          <div class="oh-restaurant">
+            <div class="oh-avatar">🍔</div>
+            <div>
+              <div class="oh-name">Burger House</div>
+              <div class="oh-sub">📍 Barranquilla</div>
+            </div>
+          </div>
+          <div class="toggle-wrap" id="statusToggle" onclick="toggleStatus()">
+            <div class="toggle-dot"></div>
+            <span class="toggle-label">Abierto</span>
+          </div>
+        </div>
+        <div class="oh-stats">
+          <div class="oh-stat">
+            <div class="oh-stat-num">24</div>
+            <div class="oh-stat-label">Pedidos hoy</div>
+          </div>
+          <div class="oh-stat">
+            <div class="oh-stat-num">$580K</div>
+            <div class="oh-stat-label">Ingresos</div>
+          </div>
+          <div class="oh-stat">
+            <div class="oh-stat-num">4.8⭐</div>
+            <div class="oh-stat-label">Calificación</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTA PEDIDO NUEVO -->
+      <div class="new-order-alert" onclick="goTo('orders')">
+        <div class="alert-icon">🔔</div>
+        <div class="alert-info">
+          <div class="alert-title">¡Nuevos pedidos entrantes!</div>
+          <div class="alert-sub">3 pedidos esperando confirmación</div>
+        </div>
+        <div class="alert-badge">3</div>
+      </div>
+
+      <!-- PEDIDOS RECIENTES -->
+      <div class="section">
+        <div class="section-header">
+          <span class="section-title">Pedidos activos</span>
+          <span class="section-link" onclick="goTo('orders')">Ver todos →</span>
+        </div>
+
+        <div class="order-card" onclick="goTo('orders')">
+          <div class="order-card-top">
+            <div>
+              <div class="order-num">Pedido #1099</div>
+              <div class="order-time">Hace 2 min · Juan R.</div>
+            </div>
+            <div class="order-total">$48.000</div>
+          </div>
+          <div class="order-items-preview">
+            <div class="order-item-chip">🍔 × 2</div>
+            <div class="order-item-chip">🍟 × 1</div>
+            <div class="order-item-chip">🥤 × 2</div>
+          </div>
+          <div class="order-card-bottom">
+            <span class="status-badge new">🔴 Nuevo</span>
+            <div class="order-actions">
+              <button class="act-btn secondary">Rechazar</button>
+              <button class="act-btn primary">Confirmar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="order-card">
+          <div class="order-card-top">
+            <div>
+              <div class="order-num">Pedido #1098</div>
+              <div class="order-time">Hace 8 min · María P.</div>
+            </div>
+            <div class="order-total">$32.000</div>
+          </div>
+          <div class="order-items-preview">
+            <div class="order-item-chip">🌮 × 3</div>
+            <div class="order-item-chip">🥤 × 1</div>
+          </div>
+          <div class="order-card-bottom">
+            <span class="status-badge preparing">🟡 Preparando</span>
+            <div class="order-actions">
+              <button class="act-btn primary" onclick="this.closest('.order-card').querySelector('.status-badge').className='status-badge ready';this.closest('.order-card').querySelector('.status-badge').textContent='🟢 Listo';this.remove()">Marcar listo</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MENÚ RÁPIDO -->
+      <div class="section" style="margin-top:4px;">
+        <div class="section-header">
+          <span class="section-title">Menú rápido</span>
+          <span class="section-link" onclick="goTo('menu')">Gestionar →</span>
+        </div>
+
+        <div class="menu-item-card">
+          <div class="menu-item-emoji">🍔</div>
+          <div class="menu-item-info">
+            <div class="menu-item-name">Classic Burger</div>
+            <div class="menu-item-cat">Hamburguesas</div>
+          </div>
+          <div class="menu-item-right">
+            <div class="menu-item-price">$22.000</div>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <div class="menu-item-card">
+          <div class="menu-item-emoji">🍟</div>
+          <div class="menu-item-info">
+            <div class="menu-item-name">Papas fritas</div>
+            <div class="menu-item-cat">Acompañamientos</div>
+          </div>
+          <div class="menu-item-right">
+            <div class="menu-item-price">$8.000</div>
+            <div class="switch on" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <div class="menu-item-card">
+          <div class="menu-item-emoji">🥤</div>
+          <div class="menu-item-info">
+            <div class="menu-item-name">Gaseosa 500ml</div>
+            <div class="menu-item-cat">Bebidas</div>
+          </div>
+          <div class="menu-item-right">
+            <div class="menu-item-price">$5.000</div>
+            <div class="switch" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: PEDIDOS ══════════ -->
+  <div class="screen" id="screen-orders">
+    <div class="orange-header" style="padding-bottom:20px;">
+      <div class="oh-top" style="margin-bottom:0;">
+        <div>
+          <div class="oh-name" style="font-size:20px;font-family:'Playfair Display',serif;">Pedidos</div>
+          <div class="oh-sub">5 pedidos activos ahora</div>
+        </div>
+        <div class="toggle-wrap" style="background:rgba(255,255,255,0.15);">
+          <span style="font-size:13px;color:#fff;font-weight:600;">Hoy · 24</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTROS -->
+    <div style="display:flex;gap:8px;padding:14px 20px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;">
+      <button class="filter-chip active-chip" onclick="setFilter(this)">Todos</button>
+      <button class="filter-chip" onclick="setFilter(this)">🔴 Nuevos</button>
+      <button class="filter-chip" onclick="setFilter(this)">🟡 Preparando</button>
+      <button class="filter-chip" onclick="setFilter(this)">🟢 Listos</button>
+      <button class="filter-chip" onclick="setFilter(this)">✅ Entregados</button>
+    </div>
+
+    <style>
+      .filter-chip {
+        padding:7px 14px; border-radius:50px;
+        border:1.5px solid var(--border);
+        background:var(--white); color:var(--muted);
+        font-family:'Plus Jakarta Sans',sans-serif;
+        font-size:12px; font-weight:600; cursor:pointer;
+        white-space:nowrap; transition:all .2s;
+        flex-shrink:0;
+      }
+      .filter-chip.active-chip {
+        background:var(--orange); color:#fff;
+        border-color:var(--orange);
+        box-shadow:0 3px 10px rgba(255,107,53,0.3);
+      }
+    </style>
+
+    <div class="scroll" style="padding:0 20px;">
+
+      <div class="order-card">
+        <div class="order-card-top">
+          <div>
+            <div class="order-num">Pedido #1099 · Juan Rodríguez</div>
+            <div class="order-time">Hace 2 min · Delivery · $48.000</div>
+          </div>
+          <span class="status-badge new">Nuevo</span>
+        </div>
+        <div class="order-items-preview">
+          <div class="order-item-chip">🍔 Classic Burger × 2</div>
+          <div class="order-item-chip">🍟 Papas × 1</div>
+          <div class="order-item-chip">🥤 Gaseosa × 2</div>
+        </div>
+        <div class="order-card-bottom">
+          <div style="font-size:12px;color:var(--muted);">📍 Cll 72 #45-20</div>
+          <div class="order-actions">
+            <button class="act-btn secondary">✕</button>
+            <button class="act-btn primary" onclick="updateStatus(this,'confirmed','Confirmado')">Confirmar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-card">
+        <div class="order-card-top">
+          <div>
+            <div class="order-num">Pedido #1098 · María Pérez</div>
+            <div class="order-time">Hace 8 min · En local · $32.000</div>
+          </div>
+          <span class="status-badge preparing">Preparando</span>
+        </div>
+        <div class="order-items-preview">
+          <div class="order-item-chip">🌮 Tacos × 3</div>
+          <div class="order-item-chip">🥤 Agua × 1</div>
+        </div>
+        <div class="order-card-bottom">
+          <div style="font-size:12px;color:var(--muted);">🏠 Mesa 4</div>
+          <div class="order-actions">
+            <button class="act-btn primary" onclick="updateStatus(this,'ready','🟢 Listo')">Marcar listo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="order-card">
+        <div class="order-card-top">
+          <div>
+            <div class="order-num">Pedido #1097 · Carlos G.</div>
+            <div class="order-time">Hace 15 min · Delivery · $55.000</div>
+          </div>
+          <span class="status-badge ready">Listo</span>
+        </div>
+        <div class="order-items-preview">
+          <div class="order-item-chip">🍔 × 3</div>
+          <div class="order-item-chip">🍟 × 2</div>
+        </div>
+        <div class="order-card-bottom">
+          <div style="font-size:12px;color:var(--muted);">📍 Cra 50 #80-15</div>
+          <div class="order-actions">
+            <button class="act-btn primary" onclick="updateStatus(this,'delivered','✅ Entregado')">Entregado</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: MENÚ ══════════ -->
+  <div class="screen" id="screen-menu">
+    <div class="orange-header" style="padding-bottom:20px;">
+      <div class="oh-top" style="margin-bottom:0;">
+        <div>
+          <div class="oh-name" style="font-size:20px;font-family:'Playfair Display',serif;">Gestionar Menú</div>
+          <div class="oh-sub">8 platos activos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll" style="padding:16px 20px 0;">
+      <div class="section-header" style="margin-bottom:14px;">
+        <span class="section-title">Todos los platos</span>
+        <span class="section-link">+ Agregar</span>
+      </div>
+
+      <div class="menu-item-card">
+        <div class="menu-item-emoji">🍔</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">Classic Burger</div>
+          <div class="menu-item-cat">Hamburguesas · 1,380 ventas</div>
+        </div>
+        <div class="menu-item-right">
+          <div class="menu-item-price">$22.000</div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="menu-item-card">
+        <div class="menu-item-emoji">🍟</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">Papas fritas</div>
+          <div class="menu-item-cat">Acompañamientos · 980 ventas</div>
+        </div>
+        <div class="menu-item-right">
+          <div class="menu-item-price">$8.000</div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="menu-item-card">
+        <div class="menu-item-emoji">🌮</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">Tacos combo x3</div>
+          <div class="menu-item-cat">Especiales · 760 ventas</div>
+        </div>
+        <div class="menu-item-right">
+          <div class="menu-item-price">$18.000</div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="menu-item-card">
+        <div class="menu-item-emoji">🍗</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">Pollo crispy</div>
+          <div class="menu-item-cat">Especiales · 540 ventas</div>
+        </div>
+        <div class="menu-item-right">
+          <div class="menu-item-price">$20.000</div>
+          <div class="switch" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="menu-item-card">
+        <div class="menu-item-emoji">🥤</div>
+        <div class="menu-item-info">
+          <div class="menu-item-name">Gaseosa 500ml</div>
+          <div class="menu-item-cat">Bebidas · 1,200 ventas</div>
+        </div>
+        <div class="menu-item-right">
+          <div class="menu-item-price">$5.000</div>
+          <div class="switch on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- ══════════ SCREEN: RESEÑAS ══════════ -->
+  <div class="screen" id="screen-reviews">
+    <div class="orange-header" style="padding-bottom:20px;">
+      <div class="oh-top" style="margin-bottom:0;">
+        <div>
+          <div class="oh-name" style="font-size:20px;font-family:'Playfair Display',serif;">Reseñas</div>
+          <div class="oh-sub">248 reseñas en total</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="scroll" style="padding:16px 20px 0;">
+      <div class="rating-summary">
+        <div class="rating-num">4.8</div>
+        <div>
+          <div class="rating-stars">⭐⭐⭐⭐⭐</div>
+          <div class="rating-count">248 reseñas</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;">Top 5% en tu ciudad</div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar">JR</div>
+          <div>
+            <div class="review-name">Juan Rodríguez</div>
+            <div class="review-date">Hace 2 días</div>
+          </div>
+          <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        </div>
+        <div class="review-text">"La mejor hamburguesa de la ciudad, llegó caliente y a tiempo. Definitivamente volvería a pedir."</div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar" style="background:linear-gradient(135deg,#3B82F6,#1D4ED8);">MP</div>
+          <div>
+            <div class="review-name">María Pérez</div>
+            <div class="review-date">Hace 3 días</div>
+          </div>
+          <div class="review-stars">⭐⭐⭐⭐</div>
+        </div>
+        <div class="review-text">"Muy buena comida, las papas fritas estaban perfectas. El delivery fue un poco lento pero vale la pena."</div>
+      </div>
+
+      <div class="review-card">
+        <div class="review-top">
+          <div class="review-avatar" style="background:linear-gradient(135deg,#22C55E,#15803D);">CG</div>
+          <div>
+            <div class="review-name">Carlos García</div>
+            <div class="review-date">Hace 5 días</div>
+          </div>
+          <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        </div>
+        <div class="review-text">"Excelente atención y comida de calidad. Los tacos son increíbles, los pediré de nuevo."</div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-dashboard" onclick="goTo('dashboard')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">Inicio</span>
+      <div class="nav-dot"></div>
+    </div>
+    <div class="nav-item" id="nav-orders" onclick="goTo('orders')">
+      <div class="nav-notif">
+        <span class="nav-icon">📋</span>
+        <div class="nav-notif-badge">3</div>
+      </div>
+      <span class="nav-label">Pedidos</span>
+    </div>
+    <div class="nav-item" id="nav-menu" onclick="goTo('menu')">
+      <span class="nav-icon">🍔</span>
+      <span class="nav-label">Menú</span>
+    </div>
+    <div class="nav-item" id="nav-reviews" onclick="goTo('reviews')">
+      <span class="nav-icon">⭐</span>
+      <span class="nav-label">Reseñas</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // NAVEGACIÓN
+  function goTo(screen) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.remove('active');
+      const dot = n.querySelector('.nav-dot');
+      if (dot) dot.remove();
+    });
+
+    document.getElementById('screen-' + screen).classList.add('active');
+    const navItem = document.getElementById('nav-' + screen);
+    if (navItem) {
+      navItem.classList.add('active');
+      const dot = document.createElement('div');
+      dot.className = 'nav-dot';
+      navItem.appendChild(dot);
+    }
+  }
+
+  // TOGGLE ABIERTO/CERRADO
+  function toggleStatus() {
+    const t = document.getElementById('statusToggle');
+    t.classList.toggle('closed');
+    const label = t.querySelector('.toggle-label');
+    label.textContent = t.classList.contains('closed') ? 'Cerrado' : 'Abierto';
+  }
+
+  // ACTUALIZAR ESTADO PEDIDO
+  function updateStatus(btn, cls, label) {
+    const card = btn.closest('.order-card');
+    const badge = card.querySelector('.status-badge');
+    badge.className = 'status-badge ' + cls;
+    badge.textContent = label;
+    btn.closest('.order-actions').innerHTML =
+      '<span style="font-size:12px;color:var(--muted);font-weight:600;">Actualizado ✓</span>';
+  }
+
+  // FILTROS PEDIDOS
+  function setFilter(el) {
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active-chip'));
+    el.classList.add('active-chip');
+  }
+</script>
+</body>
+</html>

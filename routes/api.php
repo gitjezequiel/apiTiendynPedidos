@@ -17,6 +17,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::apiResource('restaurants', RestaurantController::class);
+    Route::post('restaurant/my-data', [RestaurantController::class, 'getMyRestaurantData']);
+    Route::put('restaurant/profile', [RestaurantController::class, 'updateProfile']);
     
     // Categorías de menú
     Route::apiResource('menu-categories', MenuCategoryController::class)->except(['index']);
@@ -25,4 +27,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Platillos del menú
     Route::apiResource('menu-items', MenuItemController::class)->except(['index']);
     Route::get('restaurants/{restaurant_id}/items', [MenuItemController::class, 'index']);
+
+    // Pedidos
+    Route::get('/orders', [\App\Http\Controllers\Api\OrderController::class, 'index']);
+    Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
+    Route::get('/orders/{id}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
+    Route::put('/orders/{id}/status', [\App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
 });
