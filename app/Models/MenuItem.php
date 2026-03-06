@@ -11,7 +11,14 @@ class MenuItem extends Model
 
     protected $fillable = [
         'restaurant_id', 'category_id', 'name', 'description', 
-        'price', 'image_url', 'is_available'
+        'price', 'image_url', 'is_available', 'emoji', 'stock', 'extras'
+    ];
+
+    protected $casts = [
+        'is_available' => 'boolean',
+        'extras' => 'array',
+        'price' => 'float',
+        'stock' => 'integer',
     ];
 
     public function restaurant()

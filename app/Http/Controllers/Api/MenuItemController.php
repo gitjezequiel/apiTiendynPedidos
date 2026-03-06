@@ -32,7 +32,10 @@ class MenuItemController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'image_url' => 'nullable|string|max:500',
-            'is_available' => 'boolean'
+            'is_available' => 'boolean',
+            'emoji' => 'nullable|string|max:20',
+            'stock' => 'nullable|integer',
+            'extras' => 'nullable|array'
         ]);
 
         if ($validator->fails()) {
@@ -155,5 +158,11 @@ class MenuItemController extends Controller
             'status' => 'success',
             'message' => 'Platillo eliminado exitosamente'
         ]);
+    }
+
+    protected function formatValidationErrors($validator)
+    {
+        $errors = $validator->errors()->all();
+        return $errors[0] ?? 'Error de validación';
     }
 }
