@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Events\NewOrderPlaced;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -95,10 +96,17 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Cargar relaciones necesarias para el evento y la respuesta
+            $order->load(['items.menuItem', 'user']);
+
+            // Notificar al dueño del restaurante en tiempo real
+            $restaurant = Restaurant::find($request->restaurant_id);
+            broadcast(new NewOrderPlaced($order, $restaurant->owner_id))->toOthers();
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Pedido realizado exitosamente',
-                'order' => $order->load('items.menuItem')
+                'order' => $order
             ], 201);
 
         } catch (\Exception $e) {

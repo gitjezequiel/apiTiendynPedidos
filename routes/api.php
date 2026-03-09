@@ -5,7 +5,11 @@ use App\Http\Controllers\Api\RestaurantController;
 use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\RestaurantCategoryController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+// Autenticación de canales privados de Pusher (requiere Sanctum)
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
