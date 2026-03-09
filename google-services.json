@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "977334041017",
+    "project_id": "foodtiendyn",
+    "storage_bucket": "foodtiendyn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:977334041017:android:b3255d0f658714c6085e68",
+        "android_client_info": {
+          "package_name": "com.ezequielhn.foodtiendyn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEpyVZ2I-kSTeMduhE6CeYbL4NFkTWHH8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

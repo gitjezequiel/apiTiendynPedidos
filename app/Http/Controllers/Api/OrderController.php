@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\NewOrderPlaced;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -12,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Services\FirestoreService;
 
 class OrderController extends Controller
 {
@@ -99,9 +99,29 @@ class OrderController extends Controller
             // Cargar relaciones necesarias para el evento y la respuesta
             $order->load(['items.menuItem', 'user']);
 
-            // Notificar al dueño del restaurante en tiempo real
+            // Notificar al dueño via Firebase Firestore
             $restaurant = Restaurant::find($request->restaurant_id);
-            broadcast(new NewOrderPlaced($order, $restaurant->owner_id))->toOthers();
+            try {
+                $firestore = new FirestoreService();
+                $firestore->addDocument('notifications', [
+                    'user_id'      => (string) $restaurant->owner_id,
+                    'type'         => 'new_order',
+                    'title'        => '¡Nuevo Pedido!',
+                    'message'      => 'Has recibido el pedido ' . $order->order_number . ' de ' . ($order->user->name ?? 'Cliente'),
+                    'read'         => false,
+                    'created_at'   => time() * 1000,
+                    'data'         => [
+                        'order_id'      => $order->id,
+                        'order_number'  => $order->order_number,
+                        'total'         => $order->total,
+                        'status'        => $order->status,
+                        'customer_name' => $order->user->name ?? 'Cliente',
+                        'items_count'   => $order->items->count(),
+                    ],
+                ]);
+            } catch (\Exception $fe) {
+                \Log::warning('Firebase notification error: ' . $fe->getMessage());
+            }
 
             return response()->json([
                 'status' => 'success',
