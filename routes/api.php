@@ -34,6 +34,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('menu-items', MenuItemController::class)->except(['index']);
     Route::get('restaurants/{restaurant_id}/items', [MenuItemController::class, 'index']);
 
+    // Favoritos
+    Route::get('/favorites', [\App\Http\Controllers\Api\FavoriteController::class, 'index']);
+    Route::post('/favorites/{restaurantId}/toggle', [\App\Http\Controllers\Api\FavoriteController::class, 'toggle']);
+    Route::get('/favorites/{restaurantId}/check', [\App\Http\Controllers\Api\FavoriteController::class, 'check']);
+
     // Pedidos
     Route::get('/orders', [\App\Http\Controllers\Api\OrderController::class, 'index']);
     Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
