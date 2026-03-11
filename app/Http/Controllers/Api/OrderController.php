@@ -143,25 +143,35 @@ class OrderController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        $user    = $request->user();
+        $perPage = (int) $request->get('per_page', 10);
+        $page    = (int) $request->get('page', 1);
 
         if ($user->role === 'customer') {
-            $orders = Order::with('restaurant', 'items.menuItem')
+            $paginator = Order::with('restaurant', 'items.menuItem')
                 ->where('user_id', $user->id)
                 ->latest()
-                ->get();
+                ->paginate($perPage, ['*'], 'page', $page);
         } else {
-            // Un dueño puede tener varios restaurantes
             $restaurantIds = Restaurant::where('owner_id', $user->id)->pluck('id');
-            $orders = Order::with('user', 'items.menuItem')
+            $query = Order::with('user', 'items.menuItem')
                 ->whereIn('restaurant_id', $restaurantIds)
-                ->latest()
-                ->get();
+                ->latest();
+
+            // Filtrar por status si se pide (ej: pending = pendiente,preparando,listo)
+            if ($request->get('filter') === 'pending') {
+                $query->where('status', 'pendiente');
+            }
+
+            $paginator = $query->paginate($perPage, ['*'], 'page', $page);
         }
 
         return response()->json([
-            'status' => 'success',
-            'orders' => $orders
+            'status'   => 'success',
+            'orders'   => $paginator->items(),
+            'has_more' => $paginator->hasMorePages(),
+            'total'    => $paginator->total(),
+            'page'     => $page,
         ]);
     }
 
