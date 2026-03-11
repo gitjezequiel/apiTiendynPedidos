@@ -61,18 +61,13 @@ class FirebaseStorageService
     public function delete(string $url): bool
     {
         try {
-            // Extraemos el path del archivo desde la URL de Firebase
-            // De: https://firebasestorage.googleapis.com/v0/b/.../o/folder%2Fuuid.ext?alt=media
-            // A: folder/uuid.ext
-            $pathStart = strpos($url, '/o/') + 3;
-            $pathEnd = strpos($url, '?alt=media');
-            
-            if ($pathStart === false || $pathEnd === false) {
+            // Extraemos el path desde: https://storage.googleapis.com/{bucket}/{path}
+            $prefix = "https://storage.googleapis.com/{$this->bucketName}/";
+            if (!str_starts_with($url, $prefix)) {
                 return false;
             }
 
-            $encodedPath = substr($url, $pathStart, $pathEnd - $pathStart);
-            $filePath = urldecode($encodedPath);
+            $filePath = substr($url, strlen($prefix));
 
             $bucket = $this->storage->getBucket($this->bucketName);
             $object = $bucket->object($filePath);
