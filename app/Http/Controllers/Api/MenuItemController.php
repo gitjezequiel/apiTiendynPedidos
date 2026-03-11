@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\Validator;
 
 class MenuItemController extends Controller
 {
+    protected $storageService;
+
+    public function __construct(\App\Services\FirebaseStorageService $storageService)
+    {
+        $this->storageService = $storageService;
+    }
+
     public function index($restaurant_id)
     {
         $items = MenuItem::where('restaurant_id', $restaurant_id)
@@ -31,6 +38,7 @@ class MenuItemController extends Controller
             'name' => 'required|string|max:150',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Campo para el archivo
             'image_url' => 'nullable|string|max:500',
             'is_available' => 'boolean',
             'emoji' => 'nullable|string|max:20',
@@ -66,7 +74,14 @@ class MenuItemController extends Controller
             }
         }
 
-        $item = MenuItem::create($request->all());
+        $data = $request->all();
+
+        // Manejo de la imagen en Firebase
+        if ($request->hasFile('image')) {
+            $data['image_url'] = $this->storageService->upload($request->file('image'), 'products');
+        }
+
+        $item = MenuItem::create($data);
 
         return response()->json([
             'status' => 'success',
@@ -112,6 +127,21 @@ class MenuItemController extends Controller
             ], 403);
         }
 
+        $validator = Validator::make($request->all(), [
+            'name' => 'string|max:150',
+            'price' => 'numeric|min:0',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'category_id' => 'nullable|exists:menu_categories,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error de validación',
+                'errors' => $this->formatValidationErrors($validator)
+            ], 422);
+        }
+
         // Si se actualiza categoría, validar coherencia
         if ($request->has('category_id')) {
             $category = MenuCategory::find($request->category_id);
@@ -123,7 +153,18 @@ class MenuItemController extends Controller
             }
         }
 
-        $item->update($request->all());
+        $data = $request->all();
+
+        // Manejo de la imagen en Firebase (actualización)
+        if ($request->hasFile('image')) {
+            $data['image_url'] = $this->storageService->upload(
+                $request->file('image'), 
+                'products', 
+                $item->image_url // Se pasa la URL vieja para borrarla
+            );
+        }
+
+        $item->update($data);
 
         return response()->json([
             'status' => 'success',
@@ -150,6 +191,11 @@ class MenuItemController extends Controller
                 'status' => 'error',
                 'message' => 'No autorizado'
             ], 403);
+        }
+
+        // Eliminar imagen de Firebase si existe
+        if ($item->image_url) {
+            $this->storageService->delete($item->image_url);
         }
 
         $item->delete();

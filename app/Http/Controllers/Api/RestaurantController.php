@@ -12,6 +12,13 @@ use Illuminate\Support\Facades\Validator;
 
 class RestaurantController extends Controller
 {
+    protected $storageService;
+
+    public function __construct(\App\Services\FirebaseStorageService $storageService)
+    {
+        $this->storageService = $storageService;
+    }
+
     public function index()
     {
         return response()->json([
@@ -55,6 +62,7 @@ class RestaurantController extends Controller
             'city' => 'nullable|string|max:100',
             'phone' => 'nullable|string|max:20',
             'category_id' => 'required|exists:restaurant_categories,id',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -65,6 +73,11 @@ class RestaurantController extends Controller
             ], 422);
         }
 
+        $logoUrl = null;
+        if ($request->hasFile('logo')) {
+            $logoUrl = $this->storageService->upload($request->file('logo'), 'restaurants');
+        }
+
         $restaurant = Restaurant::create([
             'owner_id' => $request->user()->id,
             'name' => $request->name,
@@ -73,6 +86,7 @@ class RestaurantController extends Controller
             'city' => $request->city,
             'phone' => $request->phone,
             'category_id' => $request->category_id,
+            'logo_url' => $logoUrl
         ]);
 
         return response()->json([
@@ -105,6 +119,7 @@ class RestaurantController extends Controller
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'category_id' => 'nullable|exists:restaurant_categories,id',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'logo_url' => 'nullable|string',
             // Validar horarios
             'schedules' => 'nullable|array',
@@ -129,10 +144,21 @@ class RestaurantController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Actualizar datos básicos
-            $restaurant->update($request->only([
+            $data = $request->only([
                 'name', 'description', 'address', 'phone', 'category_id', 'logo_url'
-            ]));
+            ]);
+
+            // Manejo de la imagen en Firebase
+            if ($request->hasFile('logo')) {
+                $data['logo_url'] = $this->storageService->upload(
+                    $request->file('logo'), 
+                    'restaurants', 
+                    $restaurant->logo_url
+                );
+            }
+
+            // 1. Actualizar datos básicos
+            $restaurant->update($data);
 
             // 2. Actualizar Horarios
             if ($request->has('schedules')) {

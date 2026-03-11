@@ -18,10 +18,12 @@ Route::get('/categories', [RestaurantCategoryController::class, 'index']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/profile/update', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::apiResource('restaurants', RestaurantController::class);
     Route::post('restaurant/my-data', [RestaurantController::class, 'getMyRestaurantData']);
+    Route::post('restaurant/profile', [RestaurantController::class, 'updateProfile']);
     Route::put('restaurant/profile', [RestaurantController::class, 'updateProfile']);
     
     // Categorías de menú
