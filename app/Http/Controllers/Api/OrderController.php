@@ -208,15 +208,22 @@ class OrderController extends Controller
         }
 
         $order = Order::findOrFail($id);
-        $user = $request->user();
+        $user  = $request->user();
 
-        // Validar que el usuario sea el dueño del restaurante
-        $restaurant = Restaurant::find($order->restaurant_id);
-        if ($restaurant->owner_id !== $user->id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'No tienes permiso para modificar este pedido.'
-            ], 403);
+        // El cliente solo puede confirmar la entrega de su propio pedido
+        if ($user->role === 'customer') {
+            if ($order->user_id !== $user->id) {
+                return response()->json(['status' => 'error', 'message' => 'No autorizado.'], 403);
+            }
+            if ($request->status !== 'entregado' || $order->status !== 'listo') {
+                return response()->json(['status' => 'error', 'message' => 'Solo puedes confirmar la entrega cuando el pedido esté listo.'], 422);
+            }
+        } else {
+            // El dueño solo puede modificar pedidos de su restaurante
+            $restaurant = Restaurant::find($order->restaurant_id);
+            if (!$restaurant || $restaurant->owner_id !== $user->id) {
+                return response()->json(['status' => 'error', 'message' => 'No tienes permiso para modificar este pedido.'], 403);
+            }
         }
 
         $order->update(['status' => $request->status]);
