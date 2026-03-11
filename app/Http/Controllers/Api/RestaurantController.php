@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Restaurant;
 use App\Models\RestaurantSchedule;
+use App\Models\DeliveryZone;
 use App\Models\PaymentMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -46,8 +47,8 @@ class RestaurantController extends Controller
         $user = $request->user();
         
         // Optimización: Usar el índice de owner_id y cargar solo lo necesario
-        $restaurant = Restaurant::select('id', 'owner_id', 'category_id', 'name', 'description', 'address', 'phone', 'logo_url', 'is_open')
-                                ->with(['restaurantCategory:id,name', 'schedules', 'paymentMethods'])
+        $restaurant = Restaurant::select('id', 'owner_id', 'category_id', 'name', 'description', 'address', 'phone', 'logo_url', 'is_open', 'service_type')
+                                ->with(['restaurantCategory:id,name', 'schedules', 'paymentMethods', 'deliveryZones'])
                                 ->where('owner_id', $user->id)
                                 ->first();
 
@@ -134,7 +135,7 @@ class RestaurantController extends Controller
             'logo_url' => 'nullable|string',
             'service_type' => 'nullable|in:local,delivery,both',
             'delivery_zones' => 'nullable|array',
-            'delivery_zones.*.name' => 'required_with:delivery_zones|string|max:100',
+            'delivery_zones.*.name' => 'required_with:delivery_zones|string|max:150',
             'delivery_zones.*.fee' => 'required_with:delivery_zones|numeric|min:0',
             // Validar horarios
             'schedules' => 'nullable|array',
@@ -161,7 +162,7 @@ class RestaurantController extends Controller
 
             $data = $request->only([
                 'name', 'description', 'address', 'phone', 'category_id', 'logo_url',
-                'service_type', 'delivery_zones',
+                'service_type',
             ]);
 
             // Manejo de la imagen en Firebase
@@ -190,7 +191,21 @@ class RestaurantController extends Controller
                 }
             }
 
-            // 3. Actualizar Métodos de Pago
+            // 3. Actualizar Zonas de Entrega
+            if ($request->has('delivery_zones')) {
+                $restaurant->deliveryZones()->delete();
+                foreach ($request->delivery_zones as $zone) {
+                    if (!empty($zone['name'])) {
+                        DeliveryZone::create([
+                            'restaurant_id' => $restaurant->id,
+                            'name' => $zone['name'],
+                            'fee' => $zone['fee'] ?? 0,
+                        ]);
+                    }
+                }
+            }
+
+            // 4. Actualizar Métodos de Pago
             if ($request->has('payment_methods')) {
                 $syncData = [];
                 foreach ($request->payment_methods as $method) {
@@ -206,7 +221,7 @@ class RestaurantController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Perfil actualizado exitosamente',
-                'data' => $restaurant->load(['schedules', 'paymentMethods'])
+                'data' => $restaurant->load(['schedules', 'paymentMethods', 'deliveryZones'])
             ]);
 
         } catch (\Exception $e) {
@@ -220,7 +235,7 @@ class RestaurantController extends Controller
 
     public function show($id)
     {
-        $restaurant = Restaurant::with(['restaurantCategory', 'categories.items', 'schedules', 'paymentMethods'])->find($id);
+        $restaurant = Restaurant::with(['restaurantCategory', 'categories.items', 'schedules', 'paymentMethods', 'deliveryZones'])->find($id);
         
         if (!$restaurant) {
             return response()->json([

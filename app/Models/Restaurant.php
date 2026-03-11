@@ -59,6 +59,11 @@ class Restaurant extends Model
         return $this->hasMany(RestaurantSchedule::class);
     }
 
+    public function deliveryZones()
+    {
+        return $this->hasMany(DeliveryZone::class);
+    }
+
     public function paymentMethods()
     {
         return $this->belongsToMany(PaymentMethod::class, 'restaurant_payment_methods')

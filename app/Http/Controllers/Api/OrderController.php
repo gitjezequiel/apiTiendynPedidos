@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\Restaurant;
+use App\Models\DeliveryZone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -21,12 +22,14 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'restaurant_id' => 'required|exists:restaurants,id',
-            'delivery_address' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-            'items' => 'required|array|min:1',
+            'restaurant_id'    => 'required|exists:restaurants,id',
+            'delivery_mode'    => 'required|in:pickup,delivery',
+            'delivery_zone_id' => 'nullable|exists:delivery_zones,id',
+            'delivery_address' => 'nullable|string|max:255',
+            'notes'            => 'nullable|string|max:500',
+            'items'            => 'required|array|min:1',
             'items.*.menu_item_id' => 'required|exists:menu_items,id',
-            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.quantity'     => 'required|integer|min:1',
         ]);
 
         if ($validator->fails()) {
@@ -78,18 +81,30 @@ class OrderController extends Controller
             $nextNumber = $lastOrder ? (int)str_replace('PED-', '', $lastOrder->order_number) + 1 : 1;
             $orderNumber = 'PED-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
 
-            // 3. Crear el pedido
+            // 3. Calcular costo de envío
+            $deliveryFee = 0;
+            if ($request->delivery_mode === 'delivery' && $request->delivery_zone_id) {
+                $zone = DeliveryZone::find($request->delivery_zone_id);
+                if ($zone && $zone->restaurant_id == $request->restaurant_id) {
+                    $deliveryFee = $zone->fee;
+                }
+            }
+
+            // 4. Crear el pedido
             $order = Order::create([
-                'user_id' => $user->id,
-                'restaurant_id' => $request->restaurant_id,
-                'order_number' => $orderNumber,
-                'status' => 'pendiente',
-                'total' => $total,
+                'user_id'          => $user->id,
+                'restaurant_id'    => $request->restaurant_id,
+                'order_number'     => $orderNumber,
+                'status'           => 'pendiente',
+                'total'            => $total + $deliveryFee,
                 'delivery_address' => $request->delivery_address,
-                'notes' => $request->notes
+                'notes'            => $request->notes,
+                'delivery_mode'    => $request->delivery_mode,
+                'delivery_zone_id' => $request->delivery_zone_id,
+                'delivery_fee'     => $deliveryFee,
             ]);
 
-            // 4. Crear los detalles del pedido
+            // 5. Crear los detalles del pedido
             foreach ($itemsToCreate as $item) {
                 $order->items()->create($item);
             }
@@ -205,6 +220,35 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => $request->status]);
+
+        // Notificar al cliente vía Firestore
+        $statusMessages = [
+            'preparando' => '🍳 Tu pedido está siendo preparado',
+            'listo'      => '✅ Tu pedido está listo para recoger/entregar',
+            'entregado'  => '🎉 Tu pedido ha sido entregado',
+            'rechazado'  => '❌ Tu pedido fue rechazado',
+            'cancelado'  => '❌ Tu pedido fue cancelado',
+        ];
+        if (isset($statusMessages[$request->status])) {
+            try {
+                $firestore = new \App\Services\FirestoreService();
+                $firestore->addDocument('notifications', [
+                    'user_id'    => (string) $order->user_id,
+                    'type'       => 'status_update',
+                    'title'      => 'Actualización de pedido',
+                    'message'    => $statusMessages[$request->status] . ' (' . $order->order_number . ')',
+                    'read'       => false,
+                    'created_at' => time() * 1000,
+                    'data'       => [
+                        'order_id'     => $order->id,
+                        'order_number' => $order->order_number,
+                        'status'       => $request->status,
+                    ],
+                ]);
+            } catch (\Exception $fe) {
+                \Log::warning('Firebase customer notification error: ' . $fe->getMessage());
+            }
+        }
 
         return response()->json([
             'status' => 'success',
