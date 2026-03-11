@@ -10,8 +10,9 @@ class RestaurantCategoryController extends Controller
 {
     public function index()
     {
-        $categories = RestaurantCategory::all();
-        
+        // Solo categorías que tengan al menos un restaurante registrado
+        $categories = RestaurantCategory::whereHas('restaurants')->get();
+
         return response()->json([
             'status' => 'success',
             'data' => $categories

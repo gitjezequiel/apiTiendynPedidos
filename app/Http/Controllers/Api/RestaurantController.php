@@ -19,11 +19,22 @@ class RestaurantController extends Controller
         $this->storageService = $storageService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $query = Restaurant::with('restaurantCategory')
+            ->where('is_open', true);
+
+        // Filtrar por categoría si se pasa
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        $limit = (int) $request->get('limit', 0);
+        $restaurants = $limit > 0 ? $query->limit($limit)->get() : $query->get();
+
         return response()->json([
             'status' => 'success',
-            'data' => Restaurant::with('restaurantCategory')->get()
+            'data'   => $restaurants
         ]);
     }
 
@@ -121,6 +132,10 @@ class RestaurantController extends Controller
             'category_id' => 'nullable|exists:restaurant_categories,id',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'logo_url' => 'nullable|string',
+            'service_type' => 'nullable|in:local,delivery,both',
+            'delivery_zones' => 'nullable|array',
+            'delivery_zones.*.name' => 'required_with:delivery_zones|string|max:100',
+            'delivery_zones.*.fee' => 'required_with:delivery_zones|numeric|min:0',
             // Validar horarios
             'schedules' => 'nullable|array',
             'schedules.*.day' => 'required|string',
@@ -145,7 +160,8 @@ class RestaurantController extends Controller
             DB::beginTransaction();
 
             $data = $request->only([
-                'name', 'description', 'address', 'phone', 'category_id', 'logo_url'
+                'name', 'description', 'address', 'phone', 'category_id', 'logo_url',
+                'service_type', 'delivery_zones',
             ]);
 
             // Manejo de la imagen en Firebase

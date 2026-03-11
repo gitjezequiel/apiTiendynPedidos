@@ -12,10 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Drop FK constraints that reference restaurants.id
-        Schema::table('menu_categories', function (Blueprint $table) {
-            $table->dropForeign('menu_categories_ibfk_1');
-        });
+        // Drop FK constraints that reference restaurants.id (si existe)
+        try {
+            Schema::table('menu_categories', function (Blueprint $table) {
+                $table->dropForeign('menu_categories_ibfk_1');
+            });
+        } catch (\Exception $e) {
+            // FK ya no existe, continuar
+        }
 
         // Change restaurants.id to bigint unsigned
         Schema::table('restaurants', function (Blueprint $table) {

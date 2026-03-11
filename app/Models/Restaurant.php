@@ -10,7 +10,13 @@ class Restaurant extends Model
     use HasFactory;
 
     protected $fillable = [
-        'owner_id', 'category_id', 'name', 'description', 'address', 'city', 'phone', 'logo_url', 'is_open'
+        'owner_id', 'category_id', 'name', 'description', 'address', 'city', 'phone', 'logo_url', 'is_open',
+        'service_type', 'delivery_zones',
+    ];
+
+    protected $casts = [
+        'delivery_zones' => 'array',
+        'is_open'        => 'boolean',
     ];
 
     public function owner()
