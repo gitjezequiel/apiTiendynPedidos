@@ -47,7 +47,7 @@ class RestaurantController extends Controller
         $user = $request->user();
         
         // Optimización: Usar el índice de owner_id y cargar solo lo necesario
-        $restaurant = Restaurant::select('id', 'owner_id', 'category_id', 'name', 'description', 'address', 'phone', 'logo_url', 'is_open', 'service_type')
+        $restaurant = Restaurant::select('id', 'owner_id', 'category_id', 'name', 'description', 'address', 'city', 'phone', 'logo_url', 'is_open', 'service_type')
                                 ->with(['restaurantCategory:id,name', 'schedules', 'paymentMethods', 'deliveryZones'])
                                 ->where('owner_id', $user->id)
                                 ->first();
@@ -277,6 +277,40 @@ class RestaurantController extends Controller
             'status' => 'success',
             'message' => 'Actualizado correctamente',
             'data' => $restaurant
+        ]);
+    }
+
+    public function stats(Request $request)
+    {
+        $user        = $request->user();
+        $restaurant  = Restaurant::where('owner_id', $user->id)->first();
+
+        if (!$restaurant) {
+            return response()->json(['status' => 'error', 'message' => 'Restaurante no encontrado'], 404);
+        }
+
+        $today = now()->toDateString();
+
+        $totalRevenue = \App\Models\Order::where('restaurant_id', $restaurant->id)
+            ->where('status', 'entregado')
+            ->whereDate('created_at', $today)
+            ->sum('total');
+
+        $todayOrders = \App\Models\Order::where('restaurant_id', $restaurant->id)
+            ->whereIn('status', ['preparando', 'listo', 'entregado'])
+            ->whereDate('created_at', $today)
+            ->count();
+
+        $ratingData = \App\Models\Rating::where('restaurant_id', $restaurant->id)
+            ->selectRaw('AVG(score) as avg_score, COUNT(*) as count')
+            ->first();
+
+        return response()->json([
+            'status'        => 'success',
+            'total_revenue' => (float) $totalRevenue,
+            'today_orders'  => (int) $todayOrders,
+            'avg_rating'    => $ratingData->avg_score ? round((float) $ratingData->avg_score, 1) : null,
+            'ratings_count' => (int) $ratingData->count,
         ]);
     }
 
