@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\RestaurantController;
 use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\RestaurantCategoryController;
+use App\Http\Controllers\Api\AddressController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -44,4 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
     Route::get('/orders/{id}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
     Route::put('/orders/{id}/status', [\App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
+
+    // Direcciones del usuario
+    Route::get('/addresses', [AddressController::class, 'index']);
+    Route::post('/addresses', [AddressController::class, 'store']);
+    Route::put('/addresses/{id}', [AddressController::class, 'update']);
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy']);
+    Route::post('/addresses/{id}/default', [AddressController::class, 'setDefault']);
 });
