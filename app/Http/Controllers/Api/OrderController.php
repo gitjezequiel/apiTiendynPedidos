@@ -164,6 +164,9 @@ class OrderController extends Controller
 
         if ($user->role === 'customer') {
             $paginator = Order::with('restaurant', 'items.menuItem')
+                ->withExists(['ratings as has_rating' => function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                }])
                 ->where('user_id', $user->id)
                 ->latest()
                 ->paginate($perPage, ['*'], 'page', $page);
@@ -210,13 +213,16 @@ class OrderController extends Controller
         $order = Order::findOrFail($id);
         $user  = $request->user();
 
-        // El cliente solo puede confirmar la entrega de su propio pedido
+        // El cliente solo puede actuar sobre sus propios pedidos
         if ($user->role === 'customer') {
             if ($order->user_id !== $user->id) {
                 return response()->json(['status' => 'error', 'message' => 'No autorizado.'], 403);
             }
-            if ($request->status !== 'entregado' || $order->status !== 'listo') {
-                return response()->json(['status' => 'error', 'message' => 'Solo puedes confirmar la entrega cuando el pedido esté listo.'], 422);
+            // Puede confirmar entrega (listo → entregado) o cancelar (pendiente → cancelado)
+            $allowed = ($request->status === 'entregado' && $order->status === 'listo')
+                    || ($request->status === 'cancelado' && $order->status === 'pendiente');
+            if (!$allowed) {
+                return response()->json(['status' => 'error', 'message' => 'No puedes realizar esta acción en el estado actual del pedido.'], 422);
             }
         } else {
             // El dueño solo puede modificar pedidos de su restaurante
@@ -254,6 +260,31 @@ class OrderController extends Controller
                 ]);
             } catch (\Exception $fe) {
                 \Log::warning('Firebase customer notification error: ' . $fe->getMessage());
+            }
+        }
+
+        // Si el cliente canceló, notificar al dueño del restaurante
+        if ($request->status === 'cancelado' && $user->role === 'customer') {
+            try {
+                $restaurant = Restaurant::find($order->restaurant_id);
+                if ($restaurant) {
+                    $firestore = new \App\Services\FirestoreService();
+                    $firestore->addDocument('notifications', [
+                        'user_id'    => (string) $restaurant->owner_id,
+                        'type'       => 'order_cancelled',
+                        'title'      => 'Pedido cancelado',
+                        'message'    => '❌ El cliente ' . $user->name . ' canceló el pedido ' . $order->order_number,
+                        'read'       => false,
+                        'created_at' => time() * 1000,
+                        'data'       => [
+                            'order_id'      => $order->id,
+                            'order_number'  => $order->order_number,
+                            'customer_name' => $user->name,
+                        ],
+                    ]);
+                }
+            } catch (\Exception $fe) {
+                \Log::warning('Firebase owner cancel notification error: ' . $fe->getMessage());
             }
         }
 

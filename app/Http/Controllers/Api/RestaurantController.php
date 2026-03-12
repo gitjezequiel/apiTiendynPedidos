@@ -236,13 +236,16 @@ class RestaurantController extends Controller
     public function show($id)
     {
         $restaurant = Restaurant::with(['restaurantCategory', 'categories.items', 'schedules', 'paymentMethods', 'deliveryZones'])->find($id);
-        
+
         if (!$restaurant) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Restaurante no encontrado'
             ], 404);
         }
+
+        $restaurant->avg_score     = round($restaurant->ratings()->avg('score') ?? 0, 1);
+        $restaurant->ratings_count = $restaurant->ratings()->count();
 
         return response()->json([
             'status' => 'success',

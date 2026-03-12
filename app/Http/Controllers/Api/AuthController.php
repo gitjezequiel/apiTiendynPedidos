@@ -108,6 +108,17 @@ class AuthController extends Controller
         ]);
     }
 
+    public function stats(Request $request)
+    {
+        $user = $request->user();
+        return response()->json([
+            'status'          => 'success',
+            'orders_count'    => $user->orders()->count(),
+            'favorites_count' => $user->follows()->count(),
+            'reviews_count'   => $user->ratings()->count(),
+        ]);
+    }
+
     public function updateProfile(Request $request)
     {
         $user = $request->user();
@@ -144,6 +155,35 @@ class AuthController extends Controller
             'message' => 'Perfil actualizado correctamente',
             'user' => $user
         ]);
+    }
+
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error de validación',
+                'errors'  => $this->formatValidationErrors($validator),
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'La contraseña actual es incorrecta.',
+            ], 422);
+        }
+
+        $user->update(['password' => Hash::make($request->new_password)]);
+
+        return response()->json(['status' => 'success', 'message' => 'Contraseña actualizada correctamente.']);
     }
 
     public function logout(Request $request)

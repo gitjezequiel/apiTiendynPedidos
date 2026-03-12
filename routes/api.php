@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\MenuCategoryController;
 use App\Http\Controllers\Api\MenuItemController;
 use App\Http\Controllers\Api\RestaurantCategoryController;
 use App\Http\Controllers\Api\AddressController;
+use App\Http\Controllers\Api\RatingController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -18,6 +19,8 @@ Route::get('/categories', [RestaurantCategoryController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile/stats', [AuthController::class, 'stats']);
+    Route::post('/profile/change-password', [AuthController::class, 'changePassword']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::post('/profile/update', [AuthController::class, 'updateProfile']);
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -45,6 +48,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/orders', [\App\Http\Controllers\Api\OrderController::class, 'store']);
     Route::get('/orders/{id}', [\App\Http\Controllers\Api\OrderController::class, 'show']);
     Route::put('/orders/{id}/status', [\App\Http\Controllers\Api\OrderController::class, 'updateStatus']);
+
+    // Reseñas
+    Route::get('/restaurants/{restaurantId}/ratings', [RatingController::class, 'index']);
+    Route::post('/restaurants/{restaurantId}/ratings', [RatingController::class, 'store']);
 
     // Direcciones del usuario
     Route::get('/addresses', [AddressController::class, 'index']);

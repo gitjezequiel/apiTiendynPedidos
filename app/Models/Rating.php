@@ -9,6 +9,8 @@ class Rating extends Model
 {
     use HasFactory;
 
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'user_id', 'restaurant_id', 'order_id', 'score', 'comment'
     ];
