@@ -22,7 +22,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'email' => 'required|string|email|max:150|unique:users',
-            'password' => 'required|string|min:6',
+            'password' => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-zA-Z])(?=.*\d).+$/'],
             'role' => 'required|in:owner,customer',
             'phone' => 'nullable|string|max:20',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -161,7 +161,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'current_password' => 'required|string',
-            'new_password'     => 'required|string|min:6|confirmed',
+            'new_password'     => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-zA-Z])(?=.*\d).+$/', 'confirmed'],
         ]);
 
         if ($validator->fails()) {
