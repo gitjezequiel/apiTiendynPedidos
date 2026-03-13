@@ -162,6 +162,10 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'current_password' => 'required|string',
             'new_password'     => ['required', 'string', 'min:8', 'regex:/^(?=.*[a-zA-Z])(?=.*\d).+$/', 'confirmed'],
+        ], [
+            'new_password.min'      => 'La nueva contraseña debe tener al menos 8 caracteres.',
+            'new_password.regex'    => 'La nueva contraseña debe contener letras y números.',
+            'new_password.confirmed'=> 'Las contraseñas no coinciden.',
         ]);
 
         if ($validator->fails()) {
