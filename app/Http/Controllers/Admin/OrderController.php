@@ -27,15 +27,17 @@ class OrderController extends Controller
         }
 
         $orders       = $query->paginate(15)->withQueryString();
-        $pendingCount = $restaurant->orders()->where('status', 'pending')->count();
+        $pendingCount   = $restaurant->orders()->where('status', 'pendiente')->count();
+        $preparandoCount = $restaurant->orders()->where('status', 'preparando')->count();
+        $listoCount      = $restaurant->orders()->where('status', 'listo')->count();
 
-        return view('admin.orders.index', compact('restaurant', 'orders', 'pendingCount'));
+        return view('admin.orders.index', compact('restaurant', 'orders', 'pendingCount', 'preparandoCount', 'listoCount'));
     }
 
     public function updateStatus(Request $request, Order $order)
     {
         $request->validate([
-            'status' => ['required', 'in:pending,confirmed,preparing,ready,delivered,cancelled'],
+            'status' => ['required', 'in:pendiente,preparando,listo,entregado,cancelado,rechazado'],
         ]);
 
         $restaurant = auth()->user()->restaurants()->first();
@@ -45,6 +47,36 @@ class OrderController extends Controller
         }
 
         $order->update(['status' => $request->status]);
+
+        // Notificar al cliente vía Firestore
+        $statusMessages = [
+            'preparando' => '🍳 Tu pedido está siendo preparado',
+            'listo'      => '✅ Tu pedido está listo para recoger/entregar',
+            'entregado'  => '🎉 Tu pedido ha sido entregado',
+            'rechazado'  => '❌ Tu pedido fue rechazado',
+            'cancelado'  => '❌ Tu pedido fue cancelado',
+        ];
+
+        if (isset($statusMessages[$request->status])) {
+            try {
+                $firestore = new \App\Services\FirestoreService();
+                $firestore->addDocument('notifications', [
+                    'user_id'    => (string) $order->user_id,
+                    'type'       => 'status_update',
+                    'title'      => 'Actualización de pedido',
+                    'message'    => $statusMessages[$request->status] . ' (' . $order->order_number . ')',
+                    'read'       => false,
+                    'created_at' => time() * 1000,
+                    'data'       => [
+                        'order_id'     => $order->id,
+                        'order_number' => $order->order_number,
+                        'status'       => $request->status,
+                    ],
+                ]);
+            } catch (\Exception $fe) {
+                \Log::warning('Firebase customer notification error (admin): ' . $fe->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Estado actualizado correctamente.',

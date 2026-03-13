@@ -72,6 +72,7 @@
     /* Toast */
     .toast-slide {
       transition: transform 0.3s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
+      transform: translateY(-20px);
     }
 
     /* Bar chart bars */
@@ -143,28 +144,29 @@
       Menú
     </a>
 
+    <a href="{{ route('admin.customers') }}"
+       class="nav-item {{ request()->routeIs('admin.customers*') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      Clientes
+    </a>
+
+    <a href="{{ route('admin.ratings') }}"
+       class="nav-item {{ request()->routeIs('admin.ratings*') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+      </svg>
+      Reseñas
+    </a>
+
     <div class="pt-4">
       <p class="text-[10px] font-bold uppercase tracking-[0.12em] px-3 mb-2" style="color:#334155;">Próximamente</p>
-
-      <span class="nav-item disabled">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        Clientes
-      </span>
-
       <span class="nav-item disabled">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
         </svg>
         Finanzas
-      </span>
-
-      <span class="nav-item disabled">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
-        </svg>
-        Reseñas
       </span>
     </div>
 
@@ -228,18 +230,18 @@
     <div class="flex items-center gap-2.5">
 
       {{-- Notifications bell --}}
-      <a href="{{ route('admin.orders', ['status' => 'pending']) }}"
-         class="relative w-9 h-9 flex items-center justify-center rounded-xl border transition-colors"
+      <a href="{{ route('admin.orders', ['status' => 'pendiente']) }}"
+         class="relative w-11 h-11 flex items-center justify-center rounded-xl border transition-colors"
          style="background:#f8fafc; border-color:#e2e8f0;"
-         onmouseover="this.style.borderColor='#FF6B35';"
-         onmouseout="this.style.borderColor='#e2e8f0';"
+         onmouseover="this.style.borderColor='#FF6B35'; this.style.background='#fff5f0';"
+         onmouseout="this.style.borderColor='#e2e8f0'; this.style.background='#f8fafc';"
          title="Pedidos pendientes">
-        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <svg class="w-6 h-6" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
         </svg>
         <span data-pending-badge
-              class="absolute -top-1 -right-1 w-4 h-4 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white {{ $pendingCount > 0 ? '' : 'hidden' }}"
-              style="background:#FF6B35;">{{ min($pendingCount, 9) }}</span>
+              class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white {{ $pendingCount > 0 ? '' : 'hidden' }}"
+              style="background:#FF6B35;">{{ $pendingCount > 99 ? '99+' : $pendingCount }}</span>
       </a>
 
       {{-- Divider --}}
@@ -266,9 +268,38 @@
 
 </main>
 
+{{-- ═══ PAGE LOADER ═══ --}}
+<div id="page-loader" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(15,23,42,0.45); align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:16px; padding:24px 32px; display:flex; align-items:center; gap:14px; box-shadow:0 20px 60px rgba(0,0,0,0.18);">
+    <svg style="width:22px;height:22px;animation:spin 0.7s linear infinite;color:#FF6B35;" fill="none" viewBox="0 0 24 24">
+      <circle style="opacity:.25" cx="12" cy="12" r="10" stroke="#FF6B35" stroke-width="4"/>
+      <path style="opacity:.9" fill="#FF6B35" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+    </svg>
+    <span style="font-size:14px;font-weight:600;color:#334155;">Cargando…</span>
+  </div>
+</div>
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  // Show loader on any nav-item click (sidebar links)
+  document.querySelectorAll('a.nav-item').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const href = this.getAttribute('href');
+      if (!href || href === '#' || href.startsWith('javascript')) return;
+      document.getElementById('page-loader').style.display = 'flex';
+    });
+  });
+  // Hide loader when page finishes loading (back/forward navigation)
+  window.addEventListener('pageshow', () => {
+    document.getElementById('page-loader').style.display = 'none';
+  });
+</script>
+
 {{-- ═══ TOAST ═══ --}}
 <div id="app-toast"
-     class="toast-slide fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl text-white text-[13px] font-semibold shadow-xl"
+     class="toast-slide fixed top-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl text-white text-[13px] font-semibold shadow-xl"
      style="display:none; min-width:220px;">
 </div>
 
@@ -294,56 +325,61 @@
 
 {{-- ═══ FIREBASE REAL-TIME ═══ --}}
 <script type="module">
-  import { initializeApp }          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, collection, query, where, orderBy, limit, onSnapshot }
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getFirestore, collection, query, where, onSnapshot }
     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-  const firebaseConfig = {
+  const app = initializeApp({
     apiKey:            'AIzaSyAnA0rBNZLzBoXtCXlZl_Y0v0zpvOFdCWA',
     authDomain:        'foodtiendyn.firebaseapp.com',
     projectId:         'foodtiendyn',
     storageBucket:     'foodtiendyn.firebasestorage.app',
     messagingSenderId: '977334041017',
     appId:             '1:977334041017:web:2fc5ed380b59e9df085e68',
-  };
+  });
 
-  const app = initializeApp(firebaseConfig);
-  const db  = getFirestore(app);
-
+  const db        = getFirestore(app);
   const userId    = '{{ auth()->id() }}';
   const startedAt = Date.now();
 
-  // Escuchar notificaciones nuevas para este usuario
+  // Query simple: solo filtrar por user_id para evitar índice compuesto
   const q = query(
     collection(db, 'notifications'),
-    where('user_id', '==', userId),
-    where('type',    '==', 'new_order'),
-    orderBy('created_at', 'desc'),
-    limit(10)
+    where('user_id', '==', userId)
   );
 
-  let firstLoad = true;
+  // Ignorar docs que ya existían al cargar la página
+  const knownIds = new Set();
 
   onSnapshot(q, (snapshot) => {
-    // Ignorar la carga inicial para no mostrar notificaciones viejas
-    if (firstLoad) { firstLoad = false; return; }
-
     snapshot.docChanges().forEach((change) => {
       if (change.type !== 'added') return;
 
-      const data = change.doc.data();
+      const docId = change.doc.id;
+      const data  = change.doc.data();
 
-      // Solo notificaciones que llegaron después de abrir la página
+      // Primera carga: marcar como conocidos y salir
+      if (knownIds.size === 0 && snapshot.docChanges().length > 1) {
+        snapshot.docs.forEach(d => knownIds.add(d.id));
+        return;
+      }
+      if (knownIds.has(docId)) return;
+      knownIds.add(docId);
+
+      // Filtrar solo pedidos nuevos
+      if (data.type !== 'new_order') return;
+
+      // Ignorar notificaciones anteriores a cuando se abrió la página
       if (data.created_at && data.created_at < startedAt) return;
 
       const orderData = data.data || {};
-      const name      = data.message?.split(' de ')[1] || 'Cliente';
-      const total     = orderData.total ? parseFloat(orderData.total).toFixed(2) : '0.00';
+      const name  = orderData.customer_name || (data.message?.split(' de ')[1]) || 'Cliente';
+      const total = orderData.total ? parseFloat(orderData.total).toFixed(2) : '0.00';
 
       // Actualizar badges
       document.querySelectorAll('[data-pending-badge]').forEach(badge => {
-        const current = parseInt(badge.textContent) || 0;
-        badge.textContent = current + 1;
+        const n = (parseInt(badge.textContent) || 0) + 1;
+        badge.textContent = n > 9 ? '9+' : n;
         badge.classList.remove('hidden');
       });
 
@@ -360,6 +396,8 @@
         osc.start(); osc.stop(ctx.currentTime + 0.15);
       } catch(e) {}
     });
+  }, (err) => {
+    console.error('Firebase listener error:', err.message);
   });
 </script>
 

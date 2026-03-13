@@ -7,37 +7,37 @@
 
 @php
   $statusTabs = [
-    ''          => 'Todos',
-    'pending'   => 'Pendientes',
-    'confirmed' => 'Confirmados',
-    'preparing' => 'Preparando',
-    'ready'     => 'Listos',
-    'delivered' => 'Entregados',
-    'cancelled' => 'Cancelados',
+    ''           => 'Todos',
+    'pendiente'  => 'Pendientes',
+    'preparando' => 'Preparando',
+    'listo'      => 'Listos',
+    'entregado'  => 'Entregados',
+    'cancelado'  => 'Cancelados',
+    'rechazado'  => 'Rechazados',
   ];
   $statusBadgeCls = [
-    'pending'   => 'bg-amber-50 text-amber-700 border border-amber-200',
-    'confirmed' => 'bg-blue-50 text-blue-700 border border-blue-200',
-    'preparing' => 'bg-blue-50 text-blue-700 border border-blue-200',
-    'ready'     => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    'delivered' => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    'cancelled' => 'bg-red-50 text-red-700 border border-red-200',
+    'pendiente'  => 'bg-amber-50 text-amber-700 border border-amber-200',
+    'preparando' => 'bg-blue-50 text-blue-700 border border-blue-200',
+    'listo'      => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    'entregado'  => 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    'cancelado'  => 'bg-red-50 text-red-700 border border-red-200',
+    'rechazado'  => 'bg-red-50 text-red-700 border border-red-200',
   ];
   $statusDot = [
-    'pending'   => '#d97706',
-    'confirmed' => '#3b82f6',
-    'preparing' => '#3b82f6',
-    'ready'     => '#10b981',
-    'delivered' => '#10b981',
-    'cancelled' => '#ef4444',
+    'pendiente'  => '#d97706',
+    'preparando' => '#3b82f6',
+    'listo'      => '#10b981',
+    'entregado'  => '#10b981',
+    'cancelado'  => '#ef4444',
+    'rechazado'  => '#ef4444',
   ];
   $statusLabel = [
-    'pending'   => 'Pendiente',
-    'confirmed' => 'Confirmado',
-    'preparing' => 'Preparando',
-    'ready'     => 'Listo',
-    'delivered' => 'Entregado',
-    'cancelled' => 'Cancelado',
+    'pendiente'  => 'Pendiente',
+    'preparando' => 'Preparando',
+    'listo'      => 'Listo',
+    'entregado'  => 'Entregado',
+    'cancelado'  => 'Cancelado',
+    'rechazado'  => 'Rechazado',
   ];
   $currentStatus = request('status', '');
   $avatarColors = [
@@ -93,10 +93,18 @@
          onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#64748b';"
        @endif>
       {{ $label }}
-      @if($value === 'pending' && ($pendingCount ?? 0) > 0)
+      @php
+        $tabCount = match($value) {
+          'pendiente'  => $pendingCount ?? 0,
+          'preparando' => $preparandoCount ?? 0,
+          'listo'      => $listoCount ?? 0,
+          default      => 0,
+        };
+      @endphp
+      @if($tabCount > 0)
         <span class="inline-flex items-center justify-center text-[9px] font-bold rounded-full px-1.5 py-0.5"
               style="{{ $isActive ? 'background:rgba(255,255,255,0.25); color:#fff;' : 'background:#FF6B35; color:#fff;' }}">
-          {{ $pendingCount }}
+          {{ $tabCount }}
         </span>
       @endif
     </a>
@@ -204,12 +212,12 @@
                     style="min-width:130px;"
                     onfocus="this.style.borderColor='#FF6B35';"
                     onblur="this.style.borderColor='#e2e8f0';">
-                    <option value="pending"   {{ $order->status === 'pending'   ? 'selected' : '' }}>Pendiente</option>
-                    <option value="confirmed" {{ $order->status === 'confirmed' ? 'selected' : '' }}>Confirmado</option>
-                    <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparando</option>
-                    <option value="ready"     {{ $order->status === 'ready'     ? 'selected' : '' }}>Listo</option>
-                    <option value="delivered" {{ $order->status === 'delivered' ? 'selected' : '' }}>Entregado</option>
-                    <option value="cancelled" {{ $order->status === 'cancelled' ? 'selected' : '' }}>Cancelado</option>
+                    <option value="pendiente"  {{ $order->status === 'pendiente'  ? 'selected' : '' }}>Pendiente</option>
+                    <option value="preparando" {{ $order->status === 'preparando' ? 'selected' : '' }}>Preparando</option>
+                    <option value="listo"      {{ $order->status === 'listo'      ? 'selected' : '' }}>Listo</option>
+                    <option value="entregado"  {{ $order->status === 'entregado'  ? 'selected' : '' }}>Entregado</option>
+                    <option value="cancelado"  {{ $order->status === 'cancelado'  ? 'selected' : '' }}>Cancelado</option>
+                    <option value="rechazado"  {{ $order->status === 'rechazado'  ? 'selected' : '' }}>Rechazado</option>
                   </select>
                   <button
                     onclick="updateOrderStatus({{ $order->id }}, '{{ route('admin.orders.status', $order->id) }}')"
@@ -291,28 +299,28 @@
   const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
 
   const badgeClasses = {
-    pending:   'bg-amber-50 text-amber-700 border border-amber-200',
-    confirmed: 'bg-blue-50 text-blue-700 border border-blue-200',
-    preparing: 'bg-blue-50 text-blue-700 border border-blue-200',
-    ready:     'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    delivered: 'bg-emerald-50 text-emerald-700 border border-emerald-200',
-    cancelled: 'bg-red-50 text-red-700 border border-red-200',
+    pendiente:  'bg-amber-50 text-amber-700 border border-amber-200',
+    preparando: 'bg-blue-50 text-blue-700 border border-blue-200',
+    listo:      'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    entregado:  'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    cancelado:  'bg-red-50 text-red-700 border border-red-200',
+    rechazado:  'bg-red-50 text-red-700 border border-red-200',
   };
   const badgeDots = {
-    pending:   '#d97706',
-    confirmed: '#3b82f6',
-    preparing: '#3b82f6',
-    ready:     '#10b981',
-    delivered: '#10b981',
-    cancelled: '#ef4444',
+    pendiente:  '#d97706',
+    preparando: '#3b82f6',
+    listo:      '#10b981',
+    entregado:  '#10b981',
+    cancelado:  '#ef4444',
+    rechazado:  '#ef4444',
   };
   const statusLabels = {
-    pending:   'Pendiente',
-    confirmed: 'Confirmado',
-    preparing: 'Preparando',
-    ready:     'Listo',
-    delivered: 'Entregado',
-    cancelled: 'Cancelado',
+    pendiente:  'Pendiente',
+    preparando: 'Preparando',
+    listo:      'Listo',
+    entregado:  'Entregado',
+    cancelado:  'Cancelado',
+    rechazado:  'Rechazado',
   };
 
   function updateOrderStatus(orderId, url) {
