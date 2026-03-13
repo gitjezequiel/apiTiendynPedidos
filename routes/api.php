@@ -16,6 +16,10 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/categories', [RestaurantCategoryController::class, 'index']);
+Route::get('/announcements', fn() => response()->json([
+    'status' => 'success',
+    'data'   => \App\Models\Announcement::where('is_active', true)->orderBy('sort_order')->get(),
+]));
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);

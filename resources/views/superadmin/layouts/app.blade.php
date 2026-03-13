@@ -62,6 +62,26 @@
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
       Usuarios
     </a>
+
+    <p class="text-[10px] font-bold uppercase tracking-[0.12em] px-3 mb-2 mt-4 text-indigo-800">Configuración</p>
+
+    <a href="{{ route('superadmin.restaurant-categories') }}"
+       class="nav-item {{ request()->routeIs('superadmin.restaurant-categories*') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+      Categorías
+    </a>
+
+    <a href="{{ route('superadmin.payment-methods') }}"
+       class="nav-item {{ request()->routeIs('superadmin.payment-methods*') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+      Medios de pago
+    </a>
+
+    <a href="{{ route('superadmin.announcements') }}"
+       class="nav-item {{ request()->routeIs('superadmin.announcements*') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+      Anuncios
+    </a>
   </nav>
 
   <div class="px-4 py-4" style="border-top:1px solid rgba(255,255,255,0.06);">

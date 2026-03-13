@@ -20,7 +20,7 @@ class OrderController extends Controller
             ]);
         }
 
-        $query = $restaurant->orders()->with(['user', 'items'])->orderBy('created_at', 'desc');
+        $query = $restaurant->orders()->with(['user', 'items.menuItem', 'deliveryZone'])->orderBy('created_at', 'desc');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);

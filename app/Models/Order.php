@@ -33,4 +33,9 @@ class Order extends Model
     {
         return $this->hasMany(Rating::class);
     }
+
+    public function deliveryZone()
+    {
+        return $this->belongsTo(DeliveryZone::class);
+    }
 }

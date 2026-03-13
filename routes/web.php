@@ -6,10 +6,13 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\RatingController;
-use App\Http\Controllers\SuperAdmin\AuthController      as SuperAuthController;
-use App\Http\Controllers\SuperAdmin\DashboardController as SuperDashboardController;
-use App\Http\Controllers\SuperAdmin\RestaurantController as SuperRestaurantController;
-use App\Http\Controllers\SuperAdmin\UserController      as SuperUserController;
+use App\Http\Controllers\SuperAdmin\AuthController              as SuperAuthController;
+use App\Http\Controllers\SuperAdmin\DashboardController         as SuperDashboardController;
+use App\Http\Controllers\SuperAdmin\RestaurantController        as SuperRestaurantController;
+use App\Http\Controllers\SuperAdmin\UserController              as SuperUserController;
+use App\Http\Controllers\SuperAdmin\RestaurantCategoryController as SuperCategoryController;
+use App\Http\Controllers\SuperAdmin\PaymentMethodController     as SuperPaymentController;
+use App\Http\Controllers\SuperAdmin\AnnouncementController      as SuperAnnouncementController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -55,5 +58,24 @@ Route::prefix('superadmin')->name('superadmin.')->group(function () {
         Route::get('restaurants',  [SuperRestaurantController::class, 'index'])->name('restaurants');
         Route::patch('restaurants/{restaurant}/toggle', [SuperRestaurantController::class, 'toggleActive'])->name('restaurants.toggle');
         Route::get('users',        [SuperUserController::class, 'index'])->name('users');
+
+        // Restaurant categories
+        Route::get('restaurant-categories',                         [SuperCategoryController::class, 'index'])->name('restaurant-categories');
+        Route::post('restaurant-categories',                        [SuperCategoryController::class, 'store'])->name('restaurant-categories.store');
+        Route::patch('restaurant-categories/{restaurantCategory}',  [SuperCategoryController::class, 'update'])->name('restaurant-categories.update');
+        Route::delete('restaurant-categories/{restaurantCategory}', [SuperCategoryController::class, 'destroy'])->name('restaurant-categories.destroy');
+
+        // Payment methods
+        Route::get('payment-methods',                    [SuperPaymentController::class, 'index'])->name('payment-methods');
+        Route::post('payment-methods',                   [SuperPaymentController::class, 'store'])->name('payment-methods.store');
+        Route::patch('payment-methods/{paymentMethod}',  [SuperPaymentController::class, 'update'])->name('payment-methods.update');
+        Route::delete('payment-methods/{paymentMethod}', [SuperPaymentController::class, 'destroy'])->name('payment-methods.destroy');
+
+        // Announcements
+        Route::get('announcements',                      [SuperAnnouncementController::class, 'index'])->name('announcements');
+        Route::post('announcements',                     [SuperAnnouncementController::class, 'store'])->name('announcements.store');
+        Route::patch('announcements/{announcement}',     [SuperAnnouncementController::class, 'update'])->name('announcements.update');
+        Route::delete('announcements/{announcement}',    [SuperAnnouncementController::class, 'destroy'])->name('announcements.destroy');
+        Route::patch('announcements/{announcement}/toggle', [SuperAnnouncementController::class, 'toggle'])->name('announcements.toggle');
     });
 });

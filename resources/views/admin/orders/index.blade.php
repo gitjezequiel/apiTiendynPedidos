@@ -227,6 +227,30 @@
                     onmouseout="this.style.background='#FF6B35'; this.style.boxShadow='';">
                     Guardar
                   </button>
+                  <button
+                    onclick='openOrderDetail({{ json_encode([
+                      "id"               => $order->id,
+                      "order_number"     => $orderNum,
+                      "status"           => $order->status,
+                      "total"            => $order->total,
+                      "delivery_mode"    => $order->delivery_mode,
+                      "delivery_address" => $order->delivery_address,
+                      "delivery_zone"    => $order->deliveryZone?->name,
+                      "delivery_fee"     => $order->delivery_fee,
+                      "notes"            => $order->notes,
+                      "created_at"       => $order->created_at->format("d/m/Y H:i"),
+                      "customer"         => $order->user?->name ?? "Cliente",
+                      "customer_phone"   => $order->user?->phone ?? "",
+                      "items"            => $order->items->map(fn($i) => [
+                        "name"       => $i->menuItem?->name ?? "Producto eliminado",
+                        "quantity"   => $i->quantity,
+                        "unit_price" => $i->unit_price,
+                        "subtotal"   => $i->subtotal,
+                      ])->values()->toArray(),
+                    ]) }})'
+                    class="text-[11.5px] font-semibold text-slate-600 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer flex-shrink-0">
+                    Ver
+                  </button>
                 </div>
               </td>
 
@@ -291,6 +315,76 @@
 </div>
 
 @endif
+
+{{-- ════════════════════════════════
+     ORDER DETAIL MODAL
+════════════════════════════════ --}}
+<div id="orderDetailModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,0.45);"
+     onclick="if(event.target===this) closeOrderDetail()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
+      <div>
+        <h2 id="od-number" class="text-[16px] font-bold text-slate-800"></h2>
+        <p id="od-date" class="text-[12px] text-slate-400 mt-0.5"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="od-status-badge" class="text-[11px] font-bold px-2.5 py-1 rounded-full"></span>
+        <button onclick="closeOrderDetail()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+          <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="px-6 py-5 flex flex-col gap-5">
+
+      {{-- Customer --}}
+      <div class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl">
+        <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+             style="background:linear-gradient(135deg,#FF6B35,#E8521A);" id="od-avatar"></div>
+        <div>
+          <p id="od-customer" class="text-[13px] font-bold text-slate-800"></p>
+          <p id="od-phone" class="text-[12px] text-slate-400"></p>
+        </div>
+      </div>
+
+      {{-- Delivery info --}}
+      <div id="od-delivery-wrap" class="flex flex-col gap-2">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Entrega</p>
+        <div class="flex items-start gap-2.5 text-[13px] text-slate-700">
+          <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <span id="od-address"></span>
+        </div>
+        <div id="od-notes-wrap" class="hidden flex items-start gap-2.5 text-[13px] text-slate-500 italic">
+          <svg class="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/></svg>
+          <span id="od-notes"></span>
+        </div>
+      </div>
+
+      {{-- Items --}}
+      <div>
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-3">Productos</p>
+        <div id="od-items" class="flex flex-col gap-2"></div>
+      </div>
+
+      {{-- Totals --}}
+      <div class="border-t border-slate-100 pt-4 flex flex-col gap-1.5">
+        <div id="od-fee-row" class="hidden flex items-center justify-between text-[13px] text-slate-500">
+          <span>Envío</span>
+          <span id="od-fee"></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-[14px] font-bold text-slate-800">Total</span>
+          <span id="od-total" class="text-[18px] font-extrabold" style="color:#FF6B35;"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 @endsection
 
@@ -369,6 +463,96 @@
       btn.style.opacity = '1';
       showToast('Error de conexión', 'error');
     });
+  }
+
+  // ── Order detail modal ────────────────────────────────────
+  const statusBadgeStyle = {
+    pendiente:  'background:#fffbeb; color:#b45309; border:1px solid #fde68a;',
+    preparando: 'background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;',
+    listo:      'background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;',
+    entregado:  'background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;',
+    cancelado:  'background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;',
+    rechazado:  'background:#fef2f2; color:#b91c1c; border:1px solid #fecaca;',
+  };
+  const statusLabelMap = {
+    pendiente:'Pendiente', preparando:'Preparando', listo:'Listo',
+    entregado:'Entregado', cancelado:'Cancelado', rechazado:'Rechazado',
+  };
+
+  function openOrderDetail(order) {
+    document.getElementById('od-number').textContent    = order.order_number;
+    document.getElementById('od-date').textContent      = order.created_at;
+    document.getElementById('od-customer').textContent  = order.customer;
+    document.getElementById('od-phone').textContent     = order.customer_phone || '';
+    document.getElementById('od-avatar').textContent    = (order.customer || '?')[0].toUpperCase();
+    document.getElementById('od-total').textContent     = 'L. ' + parseFloat(order.total).toFixed(2);
+
+    // Status badge
+    const badge = document.getElementById('od-status-badge');
+    badge.textContent = statusLabelMap[order.status] || order.status;
+    badge.setAttribute('style', statusBadgeStyle[order.status] || '');
+
+    // Address
+    let addressText;
+    if (order.delivery_mode === 'pickup') {
+      addressText = '🏪 Para recoger en el local';
+    } else if (order.delivery_zone) {
+      addressText = '📍 Zona: ' + order.delivery_zone + (order.delivery_address ? ' — ' + order.delivery_address : '');
+    } else if (order.delivery_address) {
+      addressText = '📍 ' + order.delivery_address;
+    } else {
+      addressText = 'Sin dirección registrada';
+    }
+    document.getElementById('od-address').textContent = addressText;
+
+    // Notes
+    if (order.notes) {
+      document.getElementById('od-notes').textContent = order.notes;
+      document.getElementById('od-notes-wrap').classList.remove('hidden');
+      document.getElementById('od-notes-wrap').style.display = 'flex';
+    } else {
+      document.getElementById('od-notes-wrap').classList.add('hidden');
+      document.getElementById('od-notes-wrap').style.display = 'none';
+    }
+
+    // Delivery fee
+    if (order.delivery_fee && parseFloat(order.delivery_fee) > 0) {
+      document.getElementById('od-fee').textContent = 'L. ' + parseFloat(order.delivery_fee).toFixed(2);
+      document.getElementById('od-fee-row').classList.remove('hidden');
+      document.getElementById('od-fee-row').style.display = 'flex';
+    } else {
+      document.getElementById('od-fee-row').classList.add('hidden');
+    }
+
+    // Items
+    const container = document.getElementById('od-items');
+    container.innerHTML = '';
+    if (order.items && order.items.length) {
+      order.items.forEach(item => {
+        container.innerHTML += `
+          <div class="flex items-center justify-between py-2.5 border-b border-slate-50 last:border-0">
+            <div class="flex items-center gap-2.5">
+              <span class="w-6 h-6 rounded-md bg-orange-50 text-orange-600 text-[11px] font-bold flex items-center justify-center flex-shrink-0">${item.quantity}</span>
+              <span class="text-[13px] text-slate-700 font-medium">${item.name}</span>
+            </div>
+            <span class="text-[13px] font-bold text-slate-800 flex-shrink-0">L. ${parseFloat(item.subtotal).toFixed(2)}</span>
+          </div>`;
+      });
+    } else {
+      container.innerHTML = '<p class="text-[13px] text-slate-400 italic">Sin items registrados.</p>';
+    }
+
+    const modal = document.getElementById('orderDetailModal');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeOrderDetail() {
+    const modal = document.getElementById('orderDetailModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
   }
 </script>
 @endpush

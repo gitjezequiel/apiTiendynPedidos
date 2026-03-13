@@ -300,7 +300,7 @@ class OrderController extends Controller
      */
     public function show($id)
     {
-        $order = Order::with(['restaurant', 'user', 'items.menuItem'])->findOrFail($id);
+        $order = Order::with(['restaurant', 'user', 'items.menuItem', 'deliveryZone'])->findOrFail($id);
         return response()->json([
             'status' => 'success',
             'order' => $order
