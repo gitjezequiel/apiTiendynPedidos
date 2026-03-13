@@ -12,6 +12,10 @@ class MenuController extends Controller
             ->with(['categories.items'])
             ->first();
 
-        return view('admin.menu.index', compact('restaurant'));
+        $pendingCount = $restaurant
+            ? $restaurant->orders()->where('status', 'pending')->count()
+            : 0;
+
+        return view('admin.menu.index', compact('restaurant', 'pendingCount'));
     }
 }

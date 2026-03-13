@@ -4,7 +4,11 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\MenuController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+
+// Auth de broadcasting para la sesión web (admin)
+Broadcast::routes(['middleware' => ['auth']]);
 
 Route::get('/', fn() => redirect('/admin/login'));
 

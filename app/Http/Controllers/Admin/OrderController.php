@@ -13,18 +13,23 @@ class OrderController extends Controller
         $restaurant = auth()->user()->restaurants()->first();
 
         if (!$restaurant) {
-            return view('admin.orders.index', ['restaurant' => null, 'orders' => collect()]);
+            return view('admin.orders.index', [
+                'restaurant'   => null,
+                'orders'       => collect(),
+                'pendingCount' => 0,
+            ]);
         }
 
-        $query = $restaurant->orders()->with('user')->orderBy('created_at', 'desc');
+        $query = $restaurant->orders()->with(['user', 'items'])->orderBy('created_at', 'desc');
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        $orders = $query->paginate(15)->withQueryString();
+        $orders       = $query->paginate(15)->withQueryString();
+        $pendingCount = $restaurant->orders()->where('status', 'pending')->count();
 
-        return view('admin.orders.index', compact('restaurant', 'orders'));
+        return view('admin.orders.index', compact('restaurant', 'orders', 'pendingCount'));
     }
 
     public function updateStatus(Request $request, Order $order)
