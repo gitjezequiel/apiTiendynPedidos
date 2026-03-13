@@ -92,13 +92,30 @@
                 </div>
 
                 <button
+                    id="loginBtn"
                     type="submit"
-                    class="w-full py-2.5 px-4 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 active:opacity-80 text-sm"
+                    class="w-full py-2.5 px-4 text-white font-semibold rounded-lg transition-opacity hover:opacity-90 active:opacity-80 text-sm flex items-center justify-center gap-2"
                     style="background-color: #FF6B35;"
                 >
-                    Iniciar sesión
+                    <svg id="loginSpinner" class="hidden w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle style="opacity:.3" cx="12" cy="12" r="10" stroke="white" stroke-width="4"/>
+                      <path style="opacity:.9" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+                    </svg>
+                    <span id="loginBtnText">Iniciar sesión</span>
                 </button>
             </form>
+            <style>
+              @keyframes spin { to { transform: rotate(360deg); } }
+              .animate-spin { animation: spin 0.7s linear infinite; }
+            </style>
+            <script>
+              document.querySelector('form').addEventListener('submit', function() {
+                document.getElementById('loginSpinner').classList.remove('hidden');
+                document.getElementById('loginBtnText').textContent = 'Ingresando…';
+                document.getElementById('loginBtn').disabled = true;
+                document.getElementById('loginBtn').style.opacity = '0.8';
+              });
+            </script>
         </div>
 
         <p class="text-center text-xs text-gray-400 mt-6">

@@ -6,6 +6,10 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\RatingController;
+use App\Http\Controllers\SuperAdmin\AuthController      as SuperAuthController;
+use App\Http\Controllers\SuperAdmin\DashboardController as SuperDashboardController;
+use App\Http\Controllers\SuperAdmin\RestaurantController as SuperRestaurantController;
+use App\Http\Controllers\SuperAdmin\UserController      as SuperUserController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -37,5 +41,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('menu/items/{item}', [MenuController::class, 'updateItem'])->name('menu.items.update');
         Route::delete('menu/items/{item}', [MenuController::class, 'destroyItem'])->name('menu.items.destroy');
         Route::patch('menu/items/{item}/toggle', [MenuController::class, 'toggleItem'])->name('menu.items.toggle');
+    });
+});
+
+// ── Super Admin ──────────────────────────────────────────────
+Route::prefix('superadmin')->name('superadmin.')->group(function () {
+    Route::get('login',  [SuperAuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [SuperAuthController::class, 'login'])->name('login.post');
+    Route::post('logout',[SuperAuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+    Route::middleware(['auth', 'superadmin'])->group(function () {
+        Route::get('dashboard',    [SuperDashboardController::class, 'index'])->name('dashboard');
+        Route::get('restaurants',  [SuperRestaurantController::class, 'index'])->name('restaurants');
+        Route::patch('restaurants/{restaurant}/toggle', [SuperRestaurantController::class, 'toggleActive'])->name('restaurants.toggle');
+        Route::get('users',        [SuperUserController::class, 'index'])->name('users');
     });
 });
