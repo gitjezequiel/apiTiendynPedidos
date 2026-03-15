@@ -10,7 +10,7 @@ class Order extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'restaurant_id', 'order_number', 'status', 'total',
+        'user_id', 'restaurant_id', 'table_id', 'order_number', 'status', 'source', 'total',
         'delivery_address', 'notes', 'delivery_mode', 'delivery_zone_id', 'delivery_fee',
     ];
 
@@ -37,5 +37,10 @@ class Order extends Model
     public function deliveryZone()
     {
         return $this->belongsTo(DeliveryZone::class);
+    }
+
+    public function table()
+    {
+        return $this->belongsTo(RestaurantTable::class, 'table_id');
     }
 }

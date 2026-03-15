@@ -60,13 +60,27 @@
       Gestiona todos los pedidos de {{ $restaurant ? $restaurant->name : 'tu restaurante' }}
     </p>
   </div>
-  @if(isset($orders))
-    <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm">
-      <span class="text-[12px] text-slate-500 font-medium">Total:</span>
-      <span class="text-[15px] font-bold text-slate-800">{{ $orders->total() }}</span>
-      <span class="text-[11px] text-slate-400">pedidos</span>
-    </div>
-  @endif
+  <div class="flex items-center gap-3">
+    @if(isset($orders))
+      <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl bg-white border border-slate-200 shadow-sm">
+        <span class="text-[12px] text-slate-500 font-medium">Total:</span>
+        <span class="text-[15px] font-bold text-slate-800">{{ $orders->total() }}</span>
+        <span class="text-[11px] text-slate-400">pedidos</span>
+      </div>
+    @endif
+    @if($restaurant)
+      <a href="{{ route('admin.orders.create') }}"
+         class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-[13px] font-bold shadow-sm transition-all"
+         style="background:#FF6B35;"
+         onmouseover="this.style.background='#E8521A'; this.style.boxShadow='0 4px 14px rgba(255,107,53,0.4)';"
+         onmouseout="this.style.background='#FF6B35'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)';">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Tomar Pedido
+      </a>
+    @endif
+  </div>
 </div>
 
 @if (!$restaurant)
@@ -173,13 +187,24 @@
 
               {{-- Items summary --}}
               <td class="px-5 py-3.5">
-                @if($order->items && $order->items->count())
-                  <span class="text-[12px] text-slate-500">
-                    {{ $order->items->count() }} ítem{{ $order->items->count() != 1 ? 's' : '' }}
-                  </span>
-                @else
-                  <span class="text-slate-300">—</span>
-                @endif
+                <div class="flex flex-col gap-1.5">
+                  @if($order->source === 'local')
+                    <span class="inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full w-fit"
+                          style="background:#fff5f0; color:#FF6B35; border:1px solid #fed7c3;">
+                      🪑 Local
+                    </span>
+                  @else
+                    <span class="inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full w-fit"
+                          style="background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe;">
+                      📱 App
+                    </span>
+                  @endif
+                  @if($order->items && $order->items->count())
+                    <span class="text-[12px] text-slate-400">
+                      {{ $order->items->count() }} ítem{{ $order->items->count() != 1 ? 's' : '' }}
+                    </span>
+                  @endif
+                </div>
               </td>
 
               {{-- Total --}}
@@ -237,6 +262,8 @@
                       "delivery_address" => $order->delivery_address,
                       "delivery_zone"    => $order->deliveryZone?->name,
                       "delivery_fee"     => $order->delivery_fee,
+                      "table"            => $order->table?->name,
+                      "source"           => $order->source ?? 'app',
                       "notes"            => $order->notes,
                       "created_at"       => $order->created_at->format("d/m/Y H:i"),
                       "customer"         => $order->user?->name ?? "Cliente",
@@ -328,7 +355,10 @@
     {{-- Header --}}
     <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
       <div>
-        <h2 id="od-number" class="text-[16px] font-bold text-slate-800"></h2>
+        <div class="flex items-center gap-2">
+          <h2 id="od-number" class="text-[16px] font-bold text-slate-800"></h2>
+          <span id="od-source-badge" class="text-[10.5px] font-bold px-2 py-0.5 rounded-full"></span>
+        </div>
         <p id="od-date" class="text-[12px] text-slate-400 mt-0.5"></p>
       </div>
       <div class="flex items-center gap-2">
@@ -349,6 +379,14 @@
           <p id="od-customer" class="text-[13px] font-bold text-slate-800"></p>
           <p id="od-phone" class="text-[12px] text-slate-400"></p>
         </div>
+      </div>
+
+      {{-- Table --}}
+      <div id="od-table-wrap" class="hidden items-center gap-3 px-4 py-3 rounded-xl border border-orange-100" style="background:#fff8f5;">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="#FF6B35" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18"/>
+        </svg>
+        <span class="text-[13px] font-bold" style="color:#FF6B35;" id="od-table-name"></span>
       </div>
 
       {{-- Delivery info --}}
@@ -491,6 +529,27 @@
     const badge = document.getElementById('od-status-badge');
     badge.textContent = statusLabelMap[order.status] || order.status;
     badge.setAttribute('style', statusBadgeStyle[order.status] || '');
+
+    // Source badge
+    const srcBadge = document.getElementById('od-source-badge');
+    if (order.source === 'local') {
+      srcBadge.textContent = '🪑 Local';
+      srcBadge.setAttribute('style', 'background:#fff5f0; color:#FF6B35; border:1px solid #fed7c3;');
+    } else {
+      srcBadge.textContent = '📱 App';
+      srcBadge.setAttribute('style', 'background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe;');
+    }
+
+    // Table
+    const tableWrap = document.getElementById('od-table-wrap');
+    if (order.table) {
+      document.getElementById('od-table-name').textContent = order.table;
+      tableWrap.classList.remove('hidden');
+      tableWrap.style.display = 'flex';
+    } else {
+      tableWrap.classList.add('hidden');
+      tableWrap.style.display = 'none';
+    }
 
     // Address
     let addressText;

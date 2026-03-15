@@ -76,10 +76,10 @@ class OrderController extends Controller
                 ];
             }
 
-            // 2. Generar número de pedido único (PED-XXXXX)
-            $lastOrder = Order::latest()->first();
-            $nextNumber = $lastOrder ? (int)str_replace('PED-', '', $lastOrder->order_number) + 1 : 1;
-            $orderNumber = 'PED-' . str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+            // 2. Generar número de pedido único
+            do {
+                $orderNumber = 'PED-' . strtoupper(substr(uniqid(), -5));
+            } while (Order::where('order_number', $orderNumber)->exists());
 
             // 3. Calcular costo de envío
             $deliveryFee = 0;

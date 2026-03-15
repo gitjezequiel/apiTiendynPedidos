@@ -44,6 +44,11 @@ class Restaurant extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function tables()
+    {
+        return $this->hasMany(RestaurantTable::class);
+    }
+
     public function followers()
     {
         return $this->hasMany(Follow::class);
