@@ -29,8 +29,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::middleware(['auth', 'admin.owner'])->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('orders', [OrderController::class, 'index'])->name('orders');
+        Route::get('mesas', [OrderController::class, 'mesas'])->name('mesas');
         Route::get('orders/create', [OrderController::class, 'create'])->name('orders.create');
         Route::post('orders', [OrderController::class, 'store'])->name('orders.store');
+        Route::patch('orders/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::patch('orders/{order}/status', [OrderController::class, 'updateStatus'])->name('orders.status');
         Route::post('tables', [OrderController::class, 'storeTable'])->name('tables.store');
         Route::delete('tables/{table}', [OrderController::class, 'destroyTable'])->name('tables.destroy');

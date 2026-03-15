@@ -175,7 +175,11 @@
                        style="{{ $color }};">{{ $initials }}</div>
                   <div>
                     <p class="text-[13px] font-semibold text-slate-700">{{ $name }}</p>
-                    <p class="text-[11px] text-slate-400">#{{ $order->id }}</p>
+                    @if($order->source === 'local' && $order->customer_name)
+                      <p class="text-[11px] font-medium" style="color:#FF6B35;">{{ $order->customer_name }}</p>
+                    @else
+                      <p class="text-[11px] text-slate-400">#{{ $order->id }}</p>
+                    @endif
                   </div>
                 </div>
               </td>
@@ -253,6 +257,27 @@
                     Guardar
                   </button>
                   <button
+                    onclick='openEditOrder({{ json_encode([
+                      "id"            => $order->id,
+                      "order_number"  => $orderNum,
+                      "total"         => (float) $order->total,
+                      "table"         => $order->table?->name,
+                      "table_id"      => $order->table_id,
+                      "customer_name" => $order->customer_name,
+                      "items"         => $order->items->map(fn($i) => [
+                        "name"       => $i->menuItem?->name ?? "Producto eliminado",
+                        "quantity"   => $i->quantity,
+                        "unit_price" => $i->unit_price,
+                        "subtotal"   => $i->subtotal,
+                      ])->values()->toArray(),
+                    ]) }})'
+                    class="text-[11.5px] font-semibold px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex-shrink-0"
+                    style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0;"
+                    onmouseover="this.style.background='#dcfce7';"
+                    onmouseout="this.style.background='#f0fdf4';">
+                    Editar
+                  </button>
+                  <button
                     onclick='openOrderDetail({{ json_encode([
                       "id"               => $order->id,
                       "order_number"     => $orderNum,
@@ -266,7 +291,7 @@
                       "source"           => $order->source ?? 'app',
                       "notes"            => $order->notes,
                       "created_at"       => $order->created_at->format("d/m/Y H:i"),
-                      "customer"         => $order->user?->name ?? "Cliente",
+                      "customer"         => $order->customer_name ?? $order->user?->name ?? "Cliente",
                       "customer_phone"   => $order->user?->phone ?? "",
                       "items"            => $order->items->map(fn($i) => [
                         "name"       => $i->menuItem?->name ?? "Producto eliminado",
@@ -421,6 +446,78 @@
       </div>
 
     </div>
+  </div>
+</div>
+
+{{-- ════════════════════════════════
+     EDIT ORDER MODAL
+════════════════════════════════ --}}
+<div id="editOrderModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+     style="background:rgba(0,0,0,0.45);"
+     onclick="if(event.target===this) closeEditOrder()">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div>
+        <h2 class="text-[16px] font-bold text-slate-800">Editar Pedido <span id="eo-number" class="font-mono text-slate-500"></span></h2>
+        <p class="text-[12px] text-slate-400 mt-0.5">Agrega productos o libera la mesa</p>
+      </div>
+      <button onclick="closeEditOrder()" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="overflow-y-auto flex-1 px-6 py-5 flex flex-col gap-5">
+
+      {{-- Current items --}}
+      <div>
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Productos actuales</p>
+        <div id="eo-current-items" class="flex flex-col gap-1.5 text-[13px] text-slate-600 bg-slate-50 rounded-xl px-4 py-3"></div>
+      </div>
+
+      {{-- Table section --}}
+      <div>
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Mesa</p>
+        <div id="eo-table-grid" class="flex flex-wrap gap-2"></div>
+        <p id="eo-table-busy-msg" class="hidden text-[11px] text-red-500 mt-1.5">Esa mesa ya tiene un pedido activo hoy.</p>
+      </div>
+
+      {{-- Add products --}}
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Agregar productos</p>
+          <div class="flex gap-1.5 flex-wrap" id="eo-cat-tabs"></div>
+        </div>
+        <div id="eo-menu-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-52 overflow-y-auto pr-1"></div>
+      </div>
+
+      {{-- New items cart --}}
+      <div id="eo-new-items-section" class="hidden">
+        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-2">Productos a agregar</p>
+        <div id="eo-new-items" class="flex flex-col gap-1.5"></div>
+      </div>
+
+    </div>
+
+    {{-- Footer --}}
+    <div class="px-6 py-4 border-t border-slate-100 flex items-center justify-between flex-shrink-0">
+      <div>
+        <span class="text-[12px] text-slate-400">Total actual: </span>
+        <span id="eo-total" class="text-[15px] font-extrabold" style="color:#FF6B35;"></span>
+        <span id="eo-total-new" class="text-[12px] text-emerald-600 font-bold hidden"></span>
+      </div>
+      <button id="eo-save-btn"
+              onclick="saveOrderEdits()"
+              class="px-5 py-2.5 rounded-xl text-[13px] font-bold text-white transition-all"
+              style="background:#FF6B35;"
+              onmouseover="this.style.background='#E8521A';"
+              onmouseout="this.style.background='#FF6B35';">
+        Guardar cambios
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -612,6 +709,347 @@
     modal.style.display = 'none';
     modal.classList.add('hidden');
     document.body.style.overflow = '';
+  }
+
+  // ── Edit order modal ──────────────────────────────────────
+  const EDIT_ORDERS_BASE_URL = '{{ url('admin/orders') }}';
+
+  @php
+    $menuCategoriesData = $restaurant
+      ? $restaurant->categories
+          ->filter(fn($c) => $c->items->isNotEmpty())
+          ->map(fn($c) => [
+              'id'    => $c->id,
+              'name'  => $c->name,
+              'items' => $c->items->map(fn($i) => [
+                  'id'    => $i->id,
+                  'name'  => $i->name,
+                  'price' => (float) $i->price,
+                  'emoji' => $i->emoji ?? '🍽️',
+              ])->values()->all(),
+          ])->values()->all()
+      : [];
+  @endphp
+  const MENU_CATEGORIES = @json($menuCategoriesData);
+
+  @php
+    $tablesData = isset($tables) ? $tables->map(fn($t) => [
+        'id'   => $t->id,
+        'name' => $t->name,
+        'busy' => isset($busyTableIds) && $busyTableIds->contains($t->id),
+    ])->values()->all() : [];
+  @endphp
+  const ALL_TABLES = @json($tablesData);
+
+  let editOrderId         = null;
+  let editOrderTotal      = 0;
+  let editTableReleased   = false;
+  let editSelectedTableId = null;  // null = sin cambio, 0 = liberar, N = asignar mesa N
+  let editCart            = {};    // { menuItemId: {id, name, price, emoji, qty} }
+
+  function openEditOrder(order) {
+    editOrderId       = order.id;
+    editOrderTotal    = parseFloat(order.total);
+    editTableReleased = false;
+    editCart          = {};
+
+    document.getElementById('eo-number').textContent = order.order_number;
+    document.getElementById('eo-total').textContent  = 'L. ' + editOrderTotal.toFixed(2);
+    document.getElementById('eo-total-new').classList.add('hidden');
+
+    // Current items
+    const curEl = document.getElementById('eo-current-items');
+    if (order.items && order.items.length) {
+      curEl.innerHTML = order.items.map(i =>
+        `<div class="flex items-center justify-between py-1 border-b border-slate-100 last:border-0">
+          <span>${i.quantity}× ${i.name}</span>
+          <span class="font-semibold">L. ${parseFloat(i.subtotal).toFixed(2)}</span>
+        </div>`
+      ).join('');
+    } else {
+      curEl.innerHTML = '<p class="text-slate-400 italic text-[13px]">Sin productos.</p>';
+    }
+
+    // Table grid
+    editSelectedTableId = null;
+    renderEditTableGrid(order.table_id);
+
+    // Build menu grid
+    renderEditMenu('all');
+
+    // Build category tabs
+    const tabsEl = document.getElementById('eo-cat-tabs');
+    tabsEl.innerHTML = '';
+    const allBtn = document.createElement('button');
+    allBtn.dataset.cat = 'all';
+    allBtn.textContent = 'Todos';
+    allBtn.className = 'eo-cat-tab px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all';
+    allBtn.setAttribute('style', 'background:#FF6B35; color:#fff; border-color:#FF6B35;');
+    allBtn.onclick = () => { renderEditMenu('all'); updateEoCatTabs('all'); };
+    tabsEl.appendChild(allBtn);
+    MENU_CATEGORIES.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.dataset.cat = cat.id;
+      btn.textContent = cat.name;
+      btn.className = 'eo-cat-tab px-2.5 py-1 rounded-full text-[11px] font-semibold border border-slate-200 bg-white text-slate-600 transition-all';
+      btn.onclick = () => { renderEditMenu(cat.id); updateEoCatTabs(cat.id); };
+      tabsEl.appendChild(btn);
+    });
+
+    document.getElementById('eo-new-items-section').classList.add('hidden');
+    renderEditNewItems();
+
+    const modal = document.getElementById('editOrderModal');
+    modal.style.display = 'flex';
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function updateEoCatTabs(activeCat) {
+    document.querySelectorAll('.eo-cat-tab').forEach(btn => {
+      const isActive = String(btn.dataset.cat) === String(activeCat);
+      btn.setAttribute('style', isActive
+        ? 'background:#FF6B35; color:#fff; border-color:#FF6B35;'
+        : 'background:#fff; color:#64748b; border-color:#e2e8f0;');
+    });
+  }
+
+  function renderEditMenu(catFilter) {
+    const grid = document.getElementById('eo-menu-grid');
+    let items = [];
+    MENU_CATEGORIES.forEach(cat => {
+      if (catFilter === 'all' || cat.id === catFilter) {
+        items = items.concat(cat.items);
+      }
+    });
+
+    if (items.length === 0) {
+      grid.innerHTML = '<p class="text-[13px] text-slate-400 col-span-3 py-4 text-center">Sin productos disponibles.</p>';
+      return;
+    }
+
+    grid.innerHTML = items.map(item => `
+      <div class="bg-slate-50 rounded-xl p-3 flex flex-col gap-2 border border-slate-100 hover:border-orange-200 transition-colors">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">${item.emoji}</span>
+          <div class="flex-1 min-w-0">
+            <p class="text-[12px] font-semibold text-slate-700 line-clamp-1">${item.name}</p>
+            <p class="text-[11px] font-bold" style="color:#FF6B35;">L. ${item.price.toFixed(2)}</p>
+          </div>
+        </div>
+        <button onclick="addEditItem(${item.id}, ${JSON.stringify(item.name)}, ${item.price}, ${JSON.stringify(item.emoji)})"
+                class="w-full py-1 rounded-lg text-[11px] font-bold text-white transition-all"
+                style="background:#FF6B35;"
+                onmouseover="this.style.background='#E8521A';"
+                onmouseout="this.style.background='#FF6B35';">
+          + Agregar
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function addEditItem(id, name, price, emoji) {
+    editCart[id] ? editCart[id].qty++ : (editCart[id] = { id, name, price, emoji, qty: 1 });
+    renderEditNewItems();
+    updateEditTotal();
+  }
+
+  function removeEditItem(id) {
+    delete editCart[id];
+    renderEditNewItems();
+    updateEditTotal();
+  }
+
+  function decrementEditItem(id) {
+    if (!editCart[id]) return;
+    editCart[id].qty--;
+    if (editCart[id].qty <= 0) delete editCart[id];
+    renderEditNewItems();
+    updateEditTotal();
+  }
+
+  function renderEditNewItems() {
+    const section = document.getElementById('eo-new-items-section');
+    const el      = document.getElementById('eo-new-items');
+    const items   = Object.values(editCart);
+
+    if (items.length === 0) {
+      section.classList.add('hidden');
+      return;
+    }
+
+    section.classList.remove('hidden');
+    el.innerHTML = items.map(item => `
+      <div class="flex items-center gap-3 py-1.5 border-b border-slate-50 last:border-0">
+        <span class="text-lg">${item.emoji}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-[12px] font-semibold text-slate-700 line-clamp-1">${item.name}</p>
+          <p class="text-[11px] text-slate-400">L. ${item.price.toFixed(2)}</p>
+        </div>
+        <div class="flex items-center gap-1">
+          <button onclick="decrementEditItem(${item.id})"
+                  class="w-6 h-6 rounded-md flex items-center justify-center text-slate-500"
+                  style="background:#f1f5f9;"
+                  onmouseover="this.style.background='#e2e8f0';"
+                  onmouseout="this.style.background='#f1f5f9';">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"/></svg>
+          </button>
+          <span class="w-6 text-center text-[12px] font-bold">${item.qty}</span>
+          <button onclick="addEditItem(${item.id}, ${JSON.stringify(item.name)}, ${item.price}, ${JSON.stringify(item.emoji)})"
+                  class="w-6 h-6 rounded-md flex items-center justify-center text-white"
+                  style="background:#FF6B35;"
+                  onmouseover="this.style.background='#E8521A';"
+                  onmouseout="this.style.background='#FF6B35';">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          </button>
+        </div>
+        <button onclick="removeEditItem(${item.id})"
+                class="w-6 h-6 rounded-md flex items-center justify-center text-slate-400"
+                style="background:#f1f5f9;"
+                onmouseover="this.style.background='#fee2e2'; this.style.color='#ef4444';"
+                onmouseout="this.style.background='#f1f5f9'; this.style.color='#94a3b8';">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function updateEditTotal() {
+    const added    = Object.values(editCart).reduce((s, i) => s + i.price * i.qty, 0);
+    const newTotal = editOrderTotal + added;
+    const newEl    = document.getElementById('eo-total-new');
+    if (added > 0) {
+      newEl.textContent = ` → L. ${newTotal.toFixed(2)} (+L. ${added.toFixed(2)})`;
+      newEl.classList.remove('hidden');
+    } else {
+      newEl.classList.add('hidden');
+    }
+  }
+
+  function renderEditTableGrid(currentTableId) {
+    const grid = document.getElementById('eo-table-grid');
+    document.getElementById('eo-table-busy-msg').classList.add('hidden');
+
+    if (ALL_TABLES.length === 0) {
+      grid.innerHTML = '<p class="text-[12px] text-slate-400 italic">Sin mesas configuradas.</p>';
+      return;
+    }
+
+    // "Sin mesa" button
+    let html = `<button type="button" onclick="selectEditTable(0, this)"
+      data-tid="0"
+      class="eo-table-btn px-3 py-2 rounded-xl border-2 text-[12px] font-bold transition-all"
+      style="${currentTableId === null || currentTableId === undefined
+        ? 'border-color:#FF6B35; background:#fff5f0; color:#FF6B35;'
+        : 'border-color:#e2e8f0; background:#fff; color:#475569;'}">
+      🥡 Sin mesa
+    </button>`;
+
+    ALL_TABLES.forEach(t => {
+      const isCurrent = t.id === currentTableId;
+      const isBusy    = t.busy && !isCurrent;
+      html += `<button type="button"
+        ${isBusy ? 'disabled' : `onclick="selectEditTable(${t.id}, this)"`}
+        data-tid="${t.id}"
+        class="eo-table-btn relative px-3 py-2 rounded-xl border-2 text-[12px] font-bold transition-all ${isBusy ? 'cursor-not-allowed' : 'cursor-pointer'}"
+        style="${isCurrent
+          ? 'border-color:#FF6B35; background:#fff5f0; color:#FF6B35;'
+          : isBusy
+            ? 'border-color:#fecaca; background:#fef2f2; color:#f87171;'
+            : 'border-color:#e2e8f0; background:#fff; color:#475569;'}"
+        ${!isBusy && !isCurrent ? `onmouseover="this.style.borderColor='#FF6B35'; this.style.color='#FF6B35';" onmouseout="this.style.borderColor='#e2e8f0'; this.style.color='#475569';"` : ''}>
+        ${t.name}
+        ${isBusy ? '<span class="absolute -top-1.5 -right-1.5 w-3 h-3 rounded-full bg-red-400 border-2 border-white"></span>' : ''}
+      </button>`;
+    });
+
+    grid.innerHTML = html;
+  }
+
+  function selectEditTable(id, btn) {
+    editSelectedTableId = id;   // 0 = sin mesa/liberar, N = mesa N
+    document.getElementById('eo-table-busy-msg').classList.add('hidden');
+
+    document.querySelectorAll('.eo-table-btn').forEach(b => {
+      b.style.borderColor = '#e2e8f0';
+      b.style.background  = '#fff';
+      b.style.color       = '#475569';
+    });
+    btn.style.borderColor = '#FF6B35';
+    btn.style.background  = '#fff5f0';
+    btn.style.color       = '#FF6B35';
+  }
+
+  function saveOrderEdits() {
+    const newItems = Object.values(editCart).map(i => ({ id: i.id, qty: i.qty }));
+    const tableChanged = editSelectedTableId !== null;
+
+    if (newItems.length === 0 && !tableChanged) {
+      showToast('No hay cambios para guardar.', 'error');
+      return;
+    }
+
+    const body = {};
+    if (newItems.length)  body.new_items     = newItems;
+    if (tableChanged) {
+      if (editSelectedTableId === 0) body.release_table = true;
+      else                           body.table_id      = editSelectedTableId;
+    }
+
+    const btn = document.getElementById('eo-save-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Guardando…';
+    btn.style.background = '#94a3b8';
+
+    fetch(EDIT_ORDERS_BASE_URL + '/' + editOrderId, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': csrfToken,
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled    = false;
+      btn.textContent = 'Guardar cambios';
+      btn.style.background = '#FF6B35';
+
+      if (data.total !== undefined) {
+        showToast('✅ ' + data.message, 'success');
+        const row = document.getElementById('order-row-' + editOrderId);
+        if (row) {
+          const totalCell = row.querySelector('td:nth-child(4) span');
+          if (totalCell) totalCell.textContent = 'L.\u00a0' + parseFloat(data.total).toFixed(2);
+        }
+        closeEditOrder();
+      } else {
+        // Could be a 422 for busy table
+        if (data.message && data.message.includes('mesa')) {
+          document.getElementById('eo-table-busy-msg').classList.remove('hidden');
+          editSelectedTableId = null;
+          renderEditTableGrid(null);
+        }
+        showToast(data.message || 'Error al guardar.', 'error');
+      }
+    })
+    .catch(() => {
+      btn.disabled    = false;
+      btn.textContent = 'Guardar cambios';
+      btn.style.background = '#FF6B35';
+      showToast('Error de conexión.', 'error');
+    });
+  }
+
+  function closeEditOrder() {
+    const modal = document.getElementById('editOrderModal');
+    modal.style.display = 'none';
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    editOrderId         = null;
+    editCart            = {};
+    editSelectedTableId = null;
   }
 </script>
 @endpush

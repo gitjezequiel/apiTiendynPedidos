@@ -38,8 +38,8 @@
 <div class="bg-white rounded-2xl border border-slate-100 shadow-sm mb-5 p-5">
   <div class="flex items-center justify-between mb-4">
     <div>
-      <p class="text-[14px] font-bold text-slate-800">Seleccionar Mesa</p>
-      <p class="text-[12px] text-slate-400 mt-0.5">Las mesas en rojo tienen un pedido activo hoy</p>
+      <p class="text-[14px] font-bold text-slate-800">Tipo de pedido</p>
+      <p class="text-[12px] text-slate-400 mt-0.5">Selecciona "Para llevar" o elige una mesa. Las mesas en rojo tienen pedido activo.</p>
     </div>
     <button onclick="openTableModal()"
             class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold text-white transition-all"
@@ -65,13 +65,14 @@
     </div>
   @else
     <div class="flex flex-wrap gap-2.5" id="table-grid">
-      {{-- Sin mesa --}}
+      {{-- Para llevar --}}
       <button type="button"
               onclick="selectTable(null, this)"
               data-table-id=""
+              data-table-name="para-llevar"
               class="table-btn active-table px-4 py-2.5 rounded-xl border-2 text-[13px] font-bold transition-all"
               style="border-color:#FF6B35; background:#fff5f0; color:#FF6B35;">
-        Sin mesa
+        🥡 Para llevar
       </button>
 
       @foreach($tables as $t)
@@ -102,6 +103,9 @@
   <div id="selected-table-display" class="mt-3 hidden">
     <span class="text-[12px] text-slate-500">Mesa seleccionada: </span>
     <span id="selected-table-name" class="text-[12px] font-bold" style="color:#FF6B35;"></span>
+  </div>
+  <div id="selected-takeaway-display" class="mt-3 hidden">
+    <span class="text-[12px] font-bold" style="color:#FF6B35;">🥡 Pedido para llevar (sin mesa)</span>
   </div>
 </div>
 
@@ -197,7 +201,15 @@
         </div>
       </div>
 
-      <div class="px-5 pb-3 pt-1 border-t border-slate-50">
+      <div class="px-5 pb-3 pt-3 border-t border-slate-50">
+        <label id="customer-name-label" class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Nombre del cliente</label>
+        <input id="order-customer-name" type="text" maxlength="100" placeholder="Ej: Juan García…"
+               class="w-full text-[13px] border border-slate-200 rounded-xl px-3 py-2 outline-none text-slate-700 placeholder-slate-300 transition-colors"
+               onfocus="this.style.borderColor='#FF6B35';"
+               onblur="this.style.borderColor='#e2e8f0';">
+      </div>
+
+      <div class="px-5 pb-3 pt-1">
         <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide block mb-1.5">Notas adicionales</label>
         <textarea id="order-notes" rows="2" maxlength="255" placeholder="Ej: sin cebolla, bien cocido…"
                   class="w-full text-[13px] border border-slate-200 rounded-xl px-3 py-2 outline-none resize-none text-slate-700 placeholder-slate-300 transition-colors"
@@ -316,13 +328,19 @@
     btn.style.background  = '#fff5f0';
     btn.style.color       = '#FF6B35';
 
-    const display = document.getElementById('selected-table-display');
-    const nameEl  = document.getElementById('selected-table-name');
+    const display    = document.getElementById('selected-table-display');
+    const takeaway   = document.getElementById('selected-takeaway-display');
+    const nameEl     = document.getElementById('selected-table-name');
+    const nameLabel  = document.getElementById('customer-name-label');
     if (id) {
       nameEl.textContent = selectedTableName;
       display.classList.remove('hidden');
+      takeaway.classList.add('hidden');
+      nameLabel.textContent = 'Nombre del cliente en mesa';
     } else {
       display.classList.add('hidden');
+      takeaway.classList.remove('hidden');
+      nameLabel.textContent = 'Nombre del cliente';
     }
   }
 
@@ -460,9 +478,10 @@
         'Accept': 'application/json',
       },
       body: JSON.stringify({
-        table_id: selectedTableId || null,
-        notes:    document.getElementById('order-notes').value.trim() || null,
-        items:    items.map(i => ({ id: i.id, qty: i.qty })),
+        table_id:      selectedTableId || null,
+        notes:         document.getElementById('order-notes').value.trim() || null,
+        customer_name: document.getElementById('order-customer-name').value.trim() || null,
+        items:         items.map(i => ({ id: i.id, qty: i.qty })),
       }),
     })
     .then(r => r.json())

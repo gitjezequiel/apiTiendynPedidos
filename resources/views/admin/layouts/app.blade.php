@@ -138,6 +138,14 @@
             style="background:#FF6B35; min-width:20px; text-align:center;">{{ $pendingCount }}</span>
     </a>
 
+    <a href="{{ route('admin.mesas') }}"
+       class="nav-item {{ request()->routeIs('admin.mesas') ? 'active' : '' }}">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18"/>
+      </svg>
+      Mesas
+    </a>
+
     <a href="{{ route('admin.menu') }}"
        class="nav-item {{ request()->routeIs('admin.menu*') ? 'active' : '' }}">
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
