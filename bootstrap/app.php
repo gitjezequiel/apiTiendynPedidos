@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin.owner'   => \App\Http\Middleware\EnsureOwner::class,
             'superadmin'    => \App\Http\Middleware\EnsureSuperAdmin::class,
+            'kitchen'       => \App\Http\Middleware\EnsureKitchen::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

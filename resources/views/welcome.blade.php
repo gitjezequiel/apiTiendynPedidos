@@ -310,7 +310,7 @@
     <li><a href="#features">Funciones</a></li>
     <li><a href="#contacto">Contacto</a></li>
   </ul>
-
+  <a href="/admin/login" class="nav-cta">Panel Admin</a>
 </nav>
 
 <!-- HERO -->

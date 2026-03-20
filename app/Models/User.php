@@ -16,6 +16,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'restaurant_id',
         'phone',
         'profile_image',
         'auth_token',
@@ -36,6 +37,12 @@ class User extends Authenticatable
     public function restaurants()
     {
         return $this->hasMany(Restaurant::class, 'owner_id');
+    }
+
+    // Para usuarios de cocina: el restaurante al que pertenecen
+    public function restaurant()
+    {
+        return $this->belongsTo(Restaurant::class);
     }
 
     public function follows()

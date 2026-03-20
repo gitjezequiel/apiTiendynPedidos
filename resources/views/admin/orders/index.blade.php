@@ -407,11 +407,20 @@
       </div>
 
       {{-- Table --}}
-      <div id="od-table-wrap" class="hidden items-center gap-3 px-4 py-3 rounded-xl border border-orange-100" style="background:#fff8f5;">
-        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="#FF6B35" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18"/>
-        </svg>
-        <span class="text-[13px] font-bold" style="color:#FF6B35;" id="od-table-name"></span>
+      <div id="od-table-wrap" class="hidden items-center justify-between gap-3 px-4 py-3 rounded-xl border border-orange-100" style="background:#fff8f5;">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="#FF6B35" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18"/>
+          </svg>
+          <span class="text-[13px] font-bold" style="color:#FF6B35;" id="od-table-name"></span>
+        </div>
+        <button id="od-release-btn" onclick="releaseTableFromDetail()"
+                class="text-[11.5px] font-bold px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+                style="background:#fef2f2; color:#ef4444; border:1px solid #fecaca;"
+                onmouseover="this.style.background='#fee2e2';"
+                onmouseout="this.style.background='#fef2f2';">
+          Liberar mesa
+        </button>
       </div>
 
       {{-- Delivery info --}}
@@ -614,7 +623,10 @@
     entregado:'Entregado', cancelado:'Cancelado', rechazado:'Rechazado',
   };
 
+  let currentDetailOrderId = null;
+
   function openOrderDetail(order) {
+    currentDetailOrderId = order.id;
     document.getElementById('od-number').textContent    = order.order_number;
     document.getElementById('od-date').textContent      = order.created_at;
     document.getElementById('od-customer').textContent  = order.customer;
@@ -702,6 +714,35 @@
     modal.style.display = 'flex';
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
+  }
+
+  function releaseTableFromDetail() {
+    const btn = document.getElementById('od-release-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Liberando…';
+
+    fetch(EDIT_ORDERS_BASE_URL + '/' + currentDetailOrderId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+      body: JSON.stringify({ release_table: true }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.total !== undefined) {
+        showToast('✅ Mesa liberada correctamente.', 'success');
+        document.getElementById('od-table-wrap').classList.add('hidden');
+        document.getElementById('od-table-wrap').style.display = 'none';
+      } else {
+        btn.disabled    = false;
+        btn.textContent = 'Liberar mesa';
+        showToast(data.message || 'Error al liberar.', 'error');
+      }
+    })
+    .catch(() => {
+      btn.disabled    = false;
+      btn.textContent = 'Liberar mesa';
+      showToast('Error de conexión.', 'error');
+    });
   }
 
   function closeOrderDetail() {

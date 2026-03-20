@@ -6,6 +6,9 @@ use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\MenuController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\RatingController;
+use App\Http\Controllers\Admin\KitchenUserController;
+use App\Http\Controllers\Kitchen\AuthController      as KitchenAuthController;
+use App\Http\Controllers\Kitchen\DisplayController   as KitchenDisplayController;
 use App\Http\Controllers\SuperAdmin\AuthController              as SuperAuthController;
 use App\Http\Controllers\SuperAdmin\DashboardController         as SuperDashboardController;
 use App\Http\Controllers\SuperAdmin\RestaurantController        as SuperRestaurantController;
@@ -19,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 // Auth de broadcasting para la sesión web (admin)
 Broadcast::routes(['middleware' => ['auth']]);
 
-Route::get('/', fn() => redirect('/admin/login'));
+Route::get('/', fn() => view('welcome'));
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('login', [AuthController::class, 'showLogin'])->name('login');
@@ -40,6 +43,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('customers', [CustomerController::class, 'index'])->name('customers');
         Route::get('ratings', [RatingController::class, 'index'])->name('ratings');
 
+        // Usuarios de cocina
+        Route::get('kitchen-users',             [KitchenUserController::class, 'index'])->name('kitchen-users');
+        Route::post('kitchen-users',            [KitchenUserController::class, 'store'])->name('kitchen-users.store');
+        Route::delete('kitchen-users/{kitchenUser}', [KitchenUserController::class, 'destroy'])->name('kitchen-users.destroy');
+
         // Categories
         Route::post('menu/categories', [MenuController::class, 'storeCategory'])->name('menu.categories.store');
         Route::patch('menu/categories/{category}', [MenuController::class, 'updateCategory'])->name('menu.categories.update');
@@ -50,6 +58,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::patch('menu/items/{item}', [MenuController::class, 'updateItem'])->name('menu.items.update');
         Route::delete('menu/items/{item}', [MenuController::class, 'destroyItem'])->name('menu.items.destroy');
         Route::patch('menu/items/{item}/toggle', [MenuController::class, 'toggleItem'])->name('menu.items.toggle');
+    });
+});
+
+// ── Cocina ───────────────────────────────────────────────────
+Route::prefix('kitchen')->name('kitchen.')->group(function () {
+    Route::get('login',  [KitchenAuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [KitchenAuthController::class, 'login'])->name('login.post');
+    Route::post('logout',[KitchenAuthController::class, 'logout'])->name('logout')->middleware('auth');
+
+    Route::middleware(['auth', 'kitchen'])->group(function () {
+        Route::get('display', [KitchenDisplayController::class, 'index'])->name('display');
     });
 });
 

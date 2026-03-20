@@ -157,14 +157,23 @@
             <span class="text-[11px] text-slate-400">{{ $order->created_at->format('H:i') }}</span>
           </div>
 
-          {{-- Action --}}
-          <a href="{{ route('admin.orders', ['status' => $order->status]) }}"
-             class="mx-3 mb-3 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold transition-all border"
-             style="border-color:#FF6B35; color:#FF6B35; background:#fff5f0;"
-             onmouseover="this.style.background='#FF6B35'; this.style.color='#fff';"
-             onmouseout="this.style.background='#fff5f0'; this.style.color='#FF6B35';">
-            Ver pedido
-          </a>
+          {{-- Actions --}}
+          <div class="mx-3 mb-3 flex gap-2">
+            <a href="{{ route('admin.orders', ['status' => $order->status]) }}"
+               class="flex-1 flex items-center justify-center py-2 rounded-xl text-[12px] font-bold transition-all border"
+               style="border-color:#FF6B35; color:#FF6B35; background:#fff5f0;"
+               onmouseover="this.style.background='#FF6B35'; this.style.color='#fff';"
+               onmouseout="this.style.background='#fff5f0'; this.style.color='#FF6B35';">
+              Ver pedido
+            </a>
+            <button onclick="releaseTable({{ $order->id }}, this)"
+                    class="flex-1 py-2 rounded-xl text-[12px] font-bold transition-all"
+                    style="background:#fef2f2; color:#ef4444; border:1px solid #fecaca;"
+                    onmouseover="this.style.background='#fee2e2';"
+                    onmouseout="this.style.background='#fef2f2';">
+              Liberar mesa
+            </button>
+          </div>
 
         @else
           {{-- Free table placeholder --}}
@@ -187,3 +196,39 @@
 @endif
 
 @endsection
+
+@push('scripts')
+<script>
+  const MESAS_ORDERS_URL = '{{ url('admin/orders') }}';
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+  function releaseTable(orderId, btn) {
+    if (!confirm('¿Liberar la mesa de este pedido?')) return;
+
+    btn.disabled    = true;
+    btn.textContent = 'Liberando…';
+
+    fetch(MESAS_ORDERS_URL + '/' + orderId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' },
+      body: JSON.stringify({ release_table: true }),
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.total !== undefined) {
+        showToast('✅ Mesa liberada correctamente.', 'success');
+        setTimeout(() => location.reload(), 800);
+      } else {
+        btn.disabled    = false;
+        btn.textContent = 'Liberar mesa';
+        showToast(data.message || 'Error al liberar.', 'error');
+      }
+    })
+    .catch(() => {
+      btn.disabled    = false;
+      btn.textContent = 'Liberar mesa';
+      showToast('Error de conexión.', 'error');
+    });
+  }
+</script>
+@endpush
