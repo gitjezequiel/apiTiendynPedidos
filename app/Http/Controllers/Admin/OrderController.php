@@ -263,8 +263,9 @@ class OrderController extends Controller
 
         $query = $restaurant->orders()->with(['user', 'items.menuItem', 'deliveryZone', 'table'])->orderBy('created_at', 'desc');
 
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
+        $status = $request->filled('status') ? $request->status : 'pendiente';
+        if ($status !== 'all') {
+            $query->where('status', $status);
         }
 
         $orders          = $query->paginate(15)->withQueryString();

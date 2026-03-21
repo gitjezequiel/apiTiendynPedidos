@@ -15,6 +15,7 @@ Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/kitchen/login', [AuthController::class, 'kitchenLogin']);
 Route::get('/categories', [RestaurantCategoryController::class, 'index']);
 Route::get('/announcements', fn() => response()->json([
     'status' => 'success',
@@ -57,6 +58,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // Reseñas
     Route::get('/restaurants/{restaurantId}/ratings', [RatingController::class, 'index']);
     Route::post('/restaurants/{restaurantId}/ratings', [RatingController::class, 'store']);
+
+    // Cocina
+    Route::get('/kitchen/orders', [\App\Http\Controllers\Api\OrderController::class, 'kitchenOrders']);
+    Route::post('/kitchen/orders/{id}/listo', [\App\Http\Controllers\Api\OrderController::class, 'kitchenMarkListo']);
 
     // Direcciones del usuario
     Route::get('/addresses', [AddressController::class, 'index']);

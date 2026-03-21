@@ -190,6 +190,43 @@ class AuthController extends Controller
         return response()->json(['status' => 'success', 'message' => 'Contraseña actualizada correctamente.']);
     }
 
+    public function kitchenLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error de validación',
+                'errors'  => $this->formatValidationErrors($validator),
+            ], 422);
+        }
+
+        $user = User::where('username', $request->username)
+            ->where('role', 'kitchen')
+            ->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Credenciales inválidas',
+            ], 401);
+        }
+
+        $token = $user->createToken('kitchen_token')->plainTextToken;
+
+        return response()->json([
+            'status'       => 'success',
+            'message'      => 'Inicio de sesión exitoso',
+            'access_token' => $token,
+            'token_type'   => 'Bearer',
+            'user'         => $user,
+        ]);
+    }
+
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

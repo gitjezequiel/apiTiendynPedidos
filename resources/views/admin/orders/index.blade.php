@@ -7,7 +7,7 @@
 
 @php
   $statusTabs = [
-    ''           => 'Todos',
+    'all'        => 'Todos',
     'pendiente'  => 'Pendientes',
     'preparando' => 'Preparando',
     'listo'      => 'Listos',
@@ -39,7 +39,7 @@
     'cancelado'  => 'Cancelado',
     'rechazado'  => 'Rechazado',
   ];
-  $currentStatus = request('status', '');
+  $currentStatus = request('status', 'pendiente');
   $avatarColors = [
     'background:linear-gradient(135deg,#FF6B35,#E8521A)',
     'background:linear-gradient(135deg,#3B82F6,#1D4ED8)',
@@ -97,7 +97,7 @@
 <div class="flex flex-wrap gap-2 mb-5">
   @foreach($statusTabs as $value => $label)
     @php $isActive = ($currentStatus === $value); @endphp
-    <a href="{{ route('admin.orders', $value !== '' ? ['status' => $value] : []) }}"
+    <a href="{{ route('admin.orders', ['status' => $value]) }}"
        class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12.5px] font-semibold border transition-all"
        style="{{ $isActive
            ? 'background:#FF6B35; color:#fff; border-color:#FF6B35; box-shadow:0 2px 10px rgba(255,107,53,0.3);'

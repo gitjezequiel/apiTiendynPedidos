@@ -8,6 +8,7 @@ use App\Models\OrderItem;
 use App\Models\MenuItem;
 use App\Models\Restaurant;
 use App\Models\DeliveryZone;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -76,10 +77,12 @@ class OrderController extends Controller
                 ];
             }
 
-            // 2. Generar número de pedido único
-            do {
-                $orderNumber = 'PED-' . strtoupper(substr(uniqid(), -5));
-            } while (Order::where('order_number', $orderNumber)->exists());
+            // 2. Generar número de pedido secuencial
+            $last = Order::where('order_number', 'like', 'PED-%')
+                ->orderByRaw('CAST(SUBSTRING(order_number, 5) AS UNSIGNED) DESC')
+                ->value('order_number');
+            $nextNumber = $last ? ((int) substr($last, 4)) + 1 : 100;
+            $orderNumber = 'PED-' . $nextNumber;
 
             // 3. Calcular costo de envío
             $deliveryFee = 0;
@@ -263,6 +266,33 @@ class OrderController extends Controller
             }
         }
 
+        // Notificar a la cocina cuando el pedido pasa a preparando
+        if ($request->status === 'preparando') {
+            try {
+                $firestore    = new \App\Services\FirestoreService();
+                $kitchenUsers = User::where('role', 'kitchen')
+                    ->where('restaurant_id', $order->restaurant_id)
+                    ->get();
+
+                foreach ($kitchenUsers as $kUser) {
+                    $firestore->addDocument('notifications', [
+                        'user_id'    => (string) $kUser->id,
+                        'type'       => 'new_order_kitchen',
+                        'title'      => '¡Nuevo pedido!',
+                        'message'    => 'Pedido ' . $order->order_number . ' listo para preparar',
+                        'read'       => false,
+                        'created_at' => time() * 1000,
+                        'data'       => [
+                            'order_id'     => $order->id,
+                            'order_number' => $order->order_number,
+                        ],
+                    ]);
+                }
+            } catch (\Exception $fe) {
+                \Log::warning('Firebase kitchen notification error: ' . $fe->getMessage());
+            }
+        }
+
         // Si el cliente canceló, notificar al dueño del restaurante
         if ($request->status === 'cancelado' && $user->role === 'customer') {
             try {
@@ -293,6 +323,102 @@ class OrderController extends Controller
             'message' => 'Estado del pedido actualizado a: ' . $request->status,
             'order' => $order
         ]);
+    }
+
+    /**
+     * Pedidos en preparación para la cocina
+     */
+    public function kitchenOrders(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->role !== 'kitchen') {
+            return response()->json(['status' => 'error', 'message' => 'Acceso exclusivo para cocina.'], 403);
+        }
+
+        $orders = Order::with(['items.menuItem', 'table', 'user'])
+            ->where('restaurant_id', $user->restaurant_id)
+            ->where('status', 'preparando')
+            ->orderBy('updated_at', 'asc')
+            ->get()
+            ->map(fn($o) => $this->formatKitchenOrder($o));
+
+        return response()->json(['status' => 'success', 'orders' => $orders]);
+    }
+
+    private function formatKitchenOrder(Order $o): array
+    {
+        return [
+            'id'            => $o->id,
+            'order_number'  => $o->order_number,
+            'customer_name' => $o->user->name ?? $o->customer_name ?? 'Cliente',
+            'delivery_mode' => $o->delivery_mode,
+            'notes'         => $o->notes,
+            'updated_at'    => $o->updated_at->toIso8601String(),
+            'table'         => $o->table ? ['number' => $o->table->number] : null,
+            'items'         => $o->items->map(fn($i) => [
+                'quantity' => $i->quantity,
+                'name'     => $i->menuItem->name ?? 'Ítem',
+                'notes'    => $i->notes ?? null,
+            ])->toArray(),
+        ];
+    }
+
+    /**
+     * Marcar pedido como listo (Cocina)
+     */
+    public function kitchenMarkListo(Request $request, $id)
+    {
+        $user  = $request->user();
+
+        if ($user->role !== 'kitchen') {
+            return response()->json(['status' => 'error', 'message' => 'Acceso exclusivo para cocina.'], 403);
+        }
+
+        $order = Order::findOrFail($id);
+
+        if ($order->restaurant_id !== $user->restaurant_id) {
+            return response()->json(['status' => 'error', 'message' => 'No autorizado.'], 403);
+        }
+
+        if ($order->status !== 'preparando') {
+            return response()->json(['status' => 'error', 'message' => 'El pedido ya no está en preparación.'], 422);
+        }
+
+        $order->update(['status' => 'listo']);
+
+        try {
+            $firestore  = new \App\Services\FirestoreService();
+            $restaurant = $order->restaurant()->first();
+
+            if ($restaurant) {
+                $firestore->addDocument('notifications', [
+                    'user_id'    => (string) $restaurant->owner_id,
+                    'type'       => 'status_update',
+                    'title'      => 'Pedido listo',
+                    'message'    => '✅ El pedido ' . $order->order_number . ' está listo',
+                    'read'       => false,
+                    'created_at' => time() * 1000,
+                    'data'       => ['order_id' => $order->id, 'order_number' => $order->order_number, 'status' => 'listo'],
+                ]);
+            }
+
+            if ($order->user_id) {
+                $firestore->addDocument('notifications', [
+                    'user_id'    => (string) $order->user_id,
+                    'type'       => 'status_update',
+                    'title'      => 'Actualización de pedido',
+                    'message'    => '✅ Tu pedido está listo (' . $order->order_number . ')',
+                    'read'       => false,
+                    'created_at' => time() * 1000,
+                    'data'       => ['order_id' => $order->id, 'order_number' => $order->order_number, 'status' => 'listo'],
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Firebase kitchen notification error: ' . $e->getMessage());
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Pedido marcado como listo.']);
     }
 
     /**
