@@ -65,7 +65,7 @@
         <thead>
           <tr class="border-b border-slate-100">
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Nombre</th>
-            <th class="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Correo</th>
+            <th class="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Usuario</th>
             <th class="px-5 py-3.5 text-left text-xs font-semibold text-slate-500 uppercase tracking-wide">Creado</th>
             <th class="px-5 py-3.5 text-right text-xs font-semibold text-slate-500 uppercase tracking-wide">Acciones</th>
           </tr>
@@ -82,7 +82,7 @@
                 <span class="font-semibold text-slate-700">{{ $user->name }}</span>
               </div>
             </td>
-            <td class="px-5 py-3.5 text-slate-500">{{ $user->email }}</td>
+            <td class="px-5 py-3.5 text-slate-500">{{ $user->username }}</td>
             <td class="px-5 py-3.5 text-slate-400 text-xs">{{ $user->created_at->format('d/m/Y') }}</td>
             <td class="px-5 py-3.5 text-right">
               <form method="POST" action="{{ route('admin.kitchen-users.destroy', $user) }}"
@@ -137,10 +137,11 @@
       </div>
 
       <div>
-        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Correo electrónico</label>
-        <input type="email" name="email" value="{{ old('email') }}" required
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nombre de usuario</label>
+        <input type="text" name="username" value="{{ old('username') }}" required autocomplete="off"
                class="w-full border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
-               placeholder="cocina@restaurante.com">
+               placeholder="Ej. juan_cocina">
+        <p class="text-xs text-slate-400 mt-1">Solo letras, números, guiones y guiones bajos.</p>
       </div>
 
       <div>

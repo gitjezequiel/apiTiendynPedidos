@@ -27,19 +27,21 @@ class KitchenUserController extends Controller
 
         $request->validate([
             'name'     => ['required', 'string', 'max:100'],
-            'email'    => ['required', 'email', 'unique:users,email'],
+            'username' => ['required', 'string', 'max:50', 'unique:users,username', 'alpha_dash'],
             'password' => ['required', 'string', 'min:6'],
         ], [
-            'name.required'     => 'El nombre es obligatorio.',
-            'email.required'    => 'El correo es obligatorio.',
-            'email.unique'      => 'Ese correo ya está en uso.',
-            'password.required' => 'La contraseña es obligatoria.',
-            'password.min'      => 'La contraseña debe tener al menos 6 caracteres.',
+            'name.required'      => 'El nombre es obligatorio.',
+            'username.required'  => 'El nombre de usuario es obligatorio.',
+            'username.unique'    => 'Ese nombre de usuario ya está en uso.',
+            'username.alpha_dash'=> 'Solo letras, números, guiones y guiones bajos.',
+            'password.required'  => 'La contraseña es obligatoria.',
+            'password.min'       => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
         User::create([
             'name'          => $request->name,
-            'email'         => $request->email,
+            'username'      => $request->username,
+            'email'         => $request->username . '@kitchen.' . $restaurant->id,
             'password'      => Hash::make($request->password),
             'role'          => 'kitchen',
             'restaurant_id' => $restaurant->id,

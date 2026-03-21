@@ -68,7 +68,9 @@ Route::prefix('kitchen')->name('kitchen.')->group(function () {
     Route::post('logout',[KitchenAuthController::class, 'logout'])->name('logout')->middleware('auth');
 
     Route::middleware(['auth', 'kitchen'])->group(function () {
-        Route::get('display', [KitchenDisplayController::class, 'index'])->name('display');
+        Route::get('display',                   [KitchenDisplayController::class, 'index'])->name('display');
+        Route::get('orders/json',               [KitchenDisplayController::class, 'ordersJson'])->name('orders.json');
+        Route::post('orders/{order}/listo',     [KitchenDisplayController::class, 'markListo'])->name('orders.listo');
     });
 });
 

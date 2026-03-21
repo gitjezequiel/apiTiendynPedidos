@@ -44,11 +44,11 @@
 
         <div class="space-y-4">
           <div>
-            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Correo electrónico</label>
-            <input type="email" name="email" value="{{ old('email') }}" required autofocus
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Usuario</label>
+            <input type="text" name="username" value="{{ old('username') }}" required autofocus autocomplete="username"
                    class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:border-transparent transition"
                    style="--tw-ring-color:#FF6B35;"
-                   placeholder="cocina@restaurante.com">
+                   placeholder="mi_usuario">
           </div>
 
           <div>

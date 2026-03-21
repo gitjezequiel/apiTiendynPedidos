@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\Kitchen;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -19,30 +21,25 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
-            'email'    => ['required', 'email'],
+        $request->validate([
+            'username' => ['required', 'string'],
             'password' => ['required'],
         ]);
 
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
+        $user = User::where('username', $request->username)
+            ->where('role', 'kitchen')
+            ->first();
 
-            if (auth()->user()->role !== 'kitchen') {
-                Auth::logout();
-                $request->session()->invalidate();
-                $request->session()->regenerateToken();
-
-                return back()->withErrors([
-                    'email' => 'Acceso exclusivo para usuarios de cocina.',
-                ])->onlyInput('email');
-            }
-
-            return redirect()->route('kitchen.display');
+        if (! $user || ! Hash::check($request->password, $user->password)) {
+            return back()->withErrors([
+                'username' => 'Las credenciales no son correctas.',
+            ])->onlyInput('username');
         }
 
-        return back()->withErrors([
-            'email' => 'Las credenciales no son correctas.',
-        ])->onlyInput('email');
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+
+        return redirect()->route('kitchen.display');
     }
 
     public function logout(Request $request)

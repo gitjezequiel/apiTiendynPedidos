@@ -309,6 +309,7 @@ class OrderController extends Controller
         if (isset($statusMessages[$request->status])) {
             try {
                 $firestore = new \App\Services\FirestoreService();
+                // Notificar al cliente
                 $firestore->addDocument('notifications', [
                     'user_id'    => (string) $order->user_id,
                     'type'       => 'status_update',
@@ -322,8 +323,31 @@ class OrderController extends Controller
                         'status'       => $request->status,
                     ],
                 ]);
+
+                // Notificar a usuarios de cocina cuando el pedido pasa a preparando
+                if ($request->status === 'preparando') {
+                    $kitchenUsers = \App\Models\User::where('role', 'kitchen')
+                        ->where('restaurant_id', $restaurant->id)
+                        ->get();
+
+                    foreach ($kitchenUsers as $kUser) {
+                        $firestore->addDocument('notifications', [
+                            'user_id'    => (string) $kUser->id,
+                            'type'       => 'new_order_kitchen',
+                            'title'      => '¡Nuevo pedido!',
+                            'message'    => 'Pedido ' . $order->order_number . ' listo para preparar',
+                            'read'       => false,
+                            'created_at' => time() * 1000,
+                            'data'       => [
+                                'order_id'      => $order->id,
+                                'order_number'  => $order->order_number,
+                                'customer_name' => $order->customer_name ?? '',
+                            ],
+                        ]);
+                    }
+                }
             } catch (\Exception $fe) {
-                \Log::warning('Firebase customer notification error (admin): ' . $fe->getMessage());
+                \Log::warning('Firebase notification error (admin): ' . $fe->getMessage());
             }
         }
 
